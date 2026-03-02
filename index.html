@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MF Lie Detector - Pro Mastery v3</title>
+<title>MF Lie Detector - Pro Mastery v3.1</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -22,22 +22,22 @@
   .app-header { display:flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--surface); border-bottom: 1px solid var(--border); }
   .logo { font-family: var(--mono); font-weight: 700; font-size: 0.85rem; color: var(--accent); }
 
-  /* Networth Box (Header above chart) */
+  /* Networth Box */
   .networth-header { display: flex; justify-content: space-around; background: var(--surface2); border-bottom: 1px solid var(--border); padding: 8px 5px; }
   .nw-col { display: flex; flex-direction: column; align-items: center; }
   .nw-lbl { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); text-transform: uppercase; margin-bottom: 2px; }
-  .nw-val { font-family: var(--mono); font-size: 1.2rem; font-weight: 700; color: var(--text); } /* Same size as Regime */
+  .nw-val { font-family: var(--mono); font-size: 1.2rem; font-weight: 700; color: var(--text); } 
 
   /* Main Layout */
   .main-sim { flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; padding-bottom: 70px; }
   
-  /* Chart (Shrunk by 20%) */
+  /* Chart */
   .chart-container { background: var(--bg); padding: 5px; height: 35vh; min-height: 220px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; }
   .chart-header { display: flex; justify-content: space-between; padding: 0 5px; }
   .label-sm { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); text-transform: uppercase; }
   .chart-wrap { flex-grow: 1; position: relative; }
 
-  /* Indicators Row (Daily, Weekly, Regime) */
+  /* Indicators Row */
   .indicator-row { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 6px 10px; border-bottom: 1px solid var(--border); }
   .ind-box { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; border-right: 1px solid var(--border); }
   .ind-box:last-child { border-right: none; }
@@ -60,7 +60,7 @@
   .btn-hold { border-color: var(--muted); color: var(--muted); background: transparent; }
   .btn-live { border-color: var(--accent2); color: var(--bg); background: var(--accent2); padding: 8px 15px; }
 
-  /* Setup Screen & Modals */
+  /* Setup Screen */
   #setupScreen { position: fixed; inset: 0; background: var(--bg); z-index: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center; }
   .dropdown { background: var(--surface2); border: 1px solid var(--border); color: white; padding: 12px; width: 100%; max-width: 320px; margin-bottom: 1rem; border-radius: 6px; font-family: var(--sans); }
   
@@ -77,8 +77,8 @@
 <div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.7rem; margin-top: 10px;" id="ovTxt">SYNCING...</div></div>
 
 <div id="setupScreen">
-  <h1 style="margin-bottom: 0.5rem; font-size: 1.8rem;">Mastery Sim v3</h1>
-  <p style="color:var(--muted); font-size: 0.8rem; margin-bottom: 1.5rem;">Wilder's RSI Smoothing & PC/NC Enabled</p>
+  <h1 style="margin-bottom: 0.5rem; font-size: 1.8rem;">Mastery Sim v3.1</h1>
+  <p style="color:var(--muted); font-size: 0.8rem; margin-bottom: 1.5rem;">Swing Low TSL Engine Enabled</p>
   <select id="fundSelect" class="dropdown">
     <option value="118989">HDFC Flexi Cap - Direct Growth</option>
     <option value="119062">ICICI Pru Flexicap - Direct Growth</option>
@@ -98,8 +98,8 @@
 
 <div id="gameUI" style="display: none; height: 100vh; flex-direction: column;">
   <header class="app-header">
-    <div class="logo">MF LIE DETECTOR V3</div>
-    <div style="font-family: var(--mono); font-size: 0.7rem; color: var(--accent2);">WMA 20</div>
+    <div class="logo">LIE DETECTOR V3.1</div>
+    <div style="font-family: var(--mono); font-size: 0.7rem; color: var(--accent2);">WMA 20 + TSL</div>
   </header>
 
   <div class="networth-header">
@@ -118,18 +118,9 @@
     </div>
 
     <div class="indicator-row">
-      <div class="ind-box">
-        <span class="label-sm">Daily RSI</span>
-        <div id="dRsi" class="ind-val">--</div>
-      </div>
-      <div class="ind-box">
-        <span class="label-sm">Weekly RSI</span>
-        <div id="wRsi" class="ind-val">--</div>
-      </div>
-      <div class="ind-box">
-        <span class="label-sm">Regime</span>
-        <div id="regimeBlock" class="ind-val">--</div>
-      </div>
+      <div class="ind-box"><span class="label-sm">Daily RSI</span><div id="dRsi" class="ind-val">--</div></div>
+      <div class="ind-box"><span class="label-sm">Weekly RSI</span><div id="wRsi" class="ind-val">--</div></div>
+      <div class="ind-box"><span class="label-sm">Regime</span><div id="regimeBlock" class="ind-val">--</div></div>
     </div>
 
     <div class="psy-box">
@@ -199,33 +190,23 @@ async function initGame() {
   updateDisplay();
 }
 
-// WILDER'S SMOOTHING RSI ALGORITHM
 function calculateRSI(prices, period = 14) {
   if (prices.length <= period) return 50;
   let gains = 0, losses = 0;
-  
-  // Initial simple average
   for (let i = 1; i <= period; i++) {
     let diff = prices[i] - prices[i - 1];
     diff > 0 ? gains += diff : losses -= diff;
   }
-  
-  let avgGain = gains / period;
-  let avgLoss = losses / period;
-
-  // Wilder's Smoothing for the rest of the array
+  let avgGain = gains / period, avgLoss = losses / period;
   for (let i = period + 1; i < prices.length; i++) {
     let diff = prices[i] - prices[i - 1];
     let currentGain = diff > 0 ? diff : 0;
     let currentLoss = diff < 0 ? -diff : 0;
-    
     avgGain = ((avgGain * (period - 1)) + currentGain) / period;
     avgLoss = ((avgLoss * (period - 1)) + currentLoss) / period;
   }
-  
   if (avgLoss === 0) return 100;
-  let rs = avgGain / avgLoss;
-  return 100 - (100 / (1 + rs));
+  return 100 - (100 / (1 + (avgGain / avgLoss)));
 }
 
 function calculateWMA(prices, period = 20) {
@@ -285,29 +266,68 @@ function updateStats(nav) {
   document.getElementById('nwVal').textContent = `₹${Math.round(nw).toLocaleString()}`;
 }
 
-// CUSTOM PLUGIN FOR PC/NC CONSOLIDATION LABELS
-const pcNcPlugin = {
-  id: 'pcncLabels',
+// PLUGIN FOR PC/NC AND TSL (Trailing Stop Loss)
+const customAnnotationsPlugin = {
+  id: 'customAnnotations',
   afterDatasetsDraw(chart) {
     const ctx = chart.ctx;
     const meta = chart.getDatasetMeta(0);
     const data = chart.data.datasets[0].data;
     const wma = chart.data.datasets[1].data;
     
+    ctx.save();
+    
+    // --- 1. TSL Lines Logic ---
+    let swingLows = [];
+    // 5-bar fractal swing low: lower than 2 bars before and 2 bars after
+    for(let i = data.length - 3; i >= 2; i--) {
+      if(data[i] < data[i-1] && data[i] < data[i-2] && data[i] <= data[i+1] && data[i] <= data[i+2]) {
+        // Prevent stacking lows too close together (min 4 days apart)
+        if(swingLows.length === 0 || (swingLows[swingLows.length-1].idx - i) > 4) {
+          swingLows.push({ idx: i, val: data[i] });
+        }
+        if(swingLows.length === 2) break;
+      }
+    }
+
+    if(swingLows.length > 0) {
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      ctx.font = '9px "Space Mono"';
+      ctx.textAlign = 'right';
+
+      swingLows.forEach((low, i) => {
+        const yPos = chart.scales.y.getPixelForValue(low.val);
+        const startX = meta.data[low.idx].x;
+        const endX = meta.data[data.length - 1].x;
+        
+        ctx.beginPath();
+        ctx.strokeStyle = i === 0 ? '#ef4444' : '#f59e0b'; // Red for immediate TSL, Orange for previous TSL
+        ctx.fillStyle = ctx.strokeStyle;
+        
+        ctx.moveTo(startX, yPos);
+        ctx.lineTo(endX, yPos);
+        ctx.stroke();
+        
+        ctx.fillText(`TSL ${i+1}`, endX - 5, yPos - 5);
+      });
+    }
+
+    // --- 2. PC/NC Consolidation Logic ---
     ctx.font = '8px "Space Mono"';
     ctx.textAlign = 'center';
+    ctx.setLineDash([]); // Reset line dash for text
     
     let lastLabelIdx = -10;
     for(let i = 5; i < data.length; i++) {
-      if(i - lastLabelIdx < 8) continue; // Prevent label overlap
+      if(i - lastLabelIdx < 8) continue; 
       
       let window = data.slice(i-5, i+1);
       let max = Math.max(...window);
       let min = Math.min(...window);
       
-      // If price ranges less than 1.5% over 5 days, it's a consolidation
       if((max - min) / min < 0.015 && wma[i] != null) {
-        let x = meta.data[i-2].x; // Draw in the middle of consolidation
+        let x = meta.data[i-2].x; 
         if(data[i] > wma[i]) {
           ctx.fillStyle = '#10b981';
           ctx.fillText('PC', x, chart.scales.y.getPixelForValue(min) + 12);
@@ -319,6 +339,8 @@ const pcNcPlugin = {
         }
       }
     }
+    
+    ctx.restore();
   }
 };
 
@@ -332,7 +354,7 @@ function renderChart(data) {
   });
   chart = new Chart(ctx, {
     type: 'line',
-    plugins: [pcNcPlugin],
+    plugins: [customAnnotationsPlugin],
     data: {
       labels: data.map((_, i) => i),
       datasets: [
@@ -342,7 +364,7 @@ function renderChart(data) {
     },
     options: { 
       responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, 
-      layout: { padding: { top: 15, bottom: 15 } }, // Extra padding so PC/NC labels don't cut off
+      layout: { padding: { top: 15, bottom: 15 } },
       scales: { x: { display: false }, y: { grid: { color: '#1e293b' }, ticks: { display: false } } } 
     }
   });
