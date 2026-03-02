@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MF Lie Detector - Pro Mastery v3.5</title>
+<title>MF Lie Detector - Pro Mastery v3.7</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -28,11 +28,15 @@
   .nw-lbl { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); text-transform: uppercase; margin-bottom: 2px; }
   .nw-val { font-family: var(--mono); font-size: 1.2rem; font-weight: 400; color: var(--text); } 
 
+  /* Warning Banner */
+  #alertBanner { display: none; background: var(--red); color: white; text-align: center; padding: 6px; font-family: var(--mono); font-weight: bold; font-size: 0.75rem; text-transform: uppercase; animation: pulseAlert 1.5s infinite; }
+  @keyframes pulseAlert { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+
   /* Main Layout */
-  .main-sim { flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; padding-bottom: 110px; }
+  .main-sim { flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; padding-bottom: 120px; }
   
   /* Chart */
-  .chart-container { background: var(--bg); padding: 5px; height: 35vh; min-height: 220px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; }
+  .chart-container { background: var(--bg); padding: 5px; height: 32vh; min-height: 200px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; }
   .chart-header { display: flex; justify-content: space-between; padding: 0 5px; }
   .label-sm { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); text-transform: uppercase; }
   .chart-wrap { flex-grow: 1; position: relative; }
@@ -43,7 +47,6 @@
   .ind-box:last-child { border-right: none; }
   .ind-val { font-family: var(--mono); font-size: 1.2rem; font-weight: 700; margin-top: 2px; padding: 2px 8px; border-radius: 4px; }
   
-  /* Regime specific colors */
   .reg-A { color: var(--accent); background: rgba(16, 185, 129, 0.1); border: 1px solid var(--accent); }
   .reg-B { color: var(--accent2); background: rgba(245, 158, 11, 0.1); border: 1px solid var(--accent2); }
   .reg-C { color: var(--red); background: rgba(239, 68, 68, 0.1); border: 1px solid var(--red); }
@@ -52,19 +55,19 @@
   .psy-box { padding: 8px 12px; background: var(--surface); flex-grow: 1; overflow-y: auto; }
   .psy-logic { font-size: 0.85rem; color: var(--text); font-style: italic; border-left: 2px solid var(--accent); padding-left: 10px; margin-top: 6px; }
 
-  /* Action Bar */
-  .action-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--surface2); border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; z-index: 200; }
-  .btn { font-family: var(--mono); font-weight: 400; font-size: 1.1rem; padding: 12px 0; border-radius: 4px; cursor: pointer; border: 1px solid transparent; text-transform: uppercase; }
+  /* 3x2 Action Bar Grid */
+  .action-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--surface2); border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; padding: 8px; z-index: 200; }
+  .btn { font-family: var(--mono); font-weight: 400; font-size: 0.85rem; padding: 10px 2px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; text-transform: uppercase; text-align: center; }
   .btn-buy { border-color: var(--accent); color: var(--accent); background: transparent; }
-  .btn-sell { border-color: var(--red); color: var(--red); background: transparent; }
   .btn-hold { border-color: var(--muted); color: var(--muted); background: transparent; }
+  .btn-sell { border-color: var(--red); color: var(--red); background: rgba(239, 68, 68, 0.05); }
+  .btn-profit { border-color: var(--accent2); color: var(--accent2); background: rgba(245, 158, 11, 0.05); }
   .btn-live { border-color: var(--accent2); color: var(--bg); background: var(--accent2); padding: 12px; font-weight: 700; border-radius: 6px; border: none; cursor: pointer; text-transform: uppercase;}
   .btn-log { background: var(--surface2); color: var(--text); border: 1px solid var(--border); padding: 4px 10px; font-size: 0.75rem; font-family: var(--mono); cursor: pointer; border-radius: 4px; }
 
   /* Setup Screen & Modals */
   #setupScreen { position: fixed; inset: 0; background: var(--bg); z-index: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem; text-align: center; }
   
-  /* Fund Selection Grid */
   .fund-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 320px; margin-bottom: 1.5rem; }
   .fund-box { background: var(--surface2); border: 2px solid var(--border); color: var(--text); padding: 15px 5px; border-radius: 6px; font-family: var(--sans); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
   .fund-box.active { border-color: var(--accent); background: rgba(16, 185, 129, 0.1); color: var(--accent); }
@@ -72,7 +75,6 @@
   .modal-overlay { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 600; flex-direction: column; }
   .modal-close { padding: 12px 15px; text-align: right; color: var(--red); font-weight: bold; font-family: var(--mono); cursor: pointer; border-bottom: 1px solid var(--border); background: var(--surface); display: flex; justify-content: space-between; align-items: center; }
   
-  /* Timeframe Row */
   .tf-row { display: flex; justify-content: space-around; background: var(--surface2); padding: 5px; border-bottom: 1px solid var(--border); }
   .tf-btn { background: transparent; border: none; color: var(--muted); font-family: var(--mono); font-size: 0.75rem; padding: 5px 10px; cursor: pointer; }
   .tf-btn.active { color: var(--accent); font-weight: 700; border-bottom: 2px solid var(--accent); }
@@ -82,6 +84,7 @@
   .log-table td { padding: 10px 5px; border-bottom: 1px solid #1e293b; }
   .log-buy { color: var(--accent); }
   .log-sell { color: var(--red); }
+  .log-profit { color: var(--accent2); }
 
   #ov { display: none; position: fixed; inset: 0; background: rgba(8,11,18,0.95); z-index: 1000; align-items: center; justify-content: center; flex-direction: column; }
   .spin { width: 35px; height: 35px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
@@ -93,8 +96,8 @@
 <div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.7rem; margin-top: 10px;" id="ovTxt">SYNCING...</div></div>
 
 <div id="setupScreen">
-  <h1 style="margin-bottom: 0.5rem; font-size: 1.8rem;">Mastery Sim v3.5</h1>
-  <p style="color:var(--muted); font-size: 0.8rem; margin-bottom: 1.5rem;">Visual Polish & Live Analytics</p>
+  <h1 style="margin-bottom: 0.5rem; font-size: 1.8rem;">Mastery Sim v3.7</h1>
+  <p style="color:var(--muted); font-size: 0.8rem; margin-bottom: 1.5rem;">Alert Engine & Tactical Exits</p>
   
   <div class="fund-grid" id="fundGrid">
     <div class="fund-box active" onclick="selectFund('118989', this)">HDFC<br>Flexicap</div>
@@ -140,7 +143,7 @@
 
 <div id="gameUI" style="display: none; height: 100vh; flex-direction: column;">
   <header class="app-header">
-    <div class="logo">LIE DETECTOR V3.5</div>
+    <div class="logo">LIE DETECTOR V3.7</div>
     <div style="display: flex; gap: 10px; align-items: center;">
       <div style="font-family: var(--mono); font-size: 0.7rem; color: var(--accent2);">WMA 20</div>
       <button class="btn-log" onclick="showLog()">TRADE LOG</button>
@@ -152,6 +155,8 @@
     <div class="nw-col"><span class="nw-lbl">In Trade</span><span class="nw-val" id="portVal">₹0</span></div>
     <div class="nw-col"><span class="nw-lbl">Cash in Hand</span><span class="nw-val" id="cashVal">₹100,000</span></div>
   </div>
+
+  <div id="alertBanner">⚠️ ALERT PLACEHOLDER</div>
 
   <main class="main-sim">
     <div class="chart-container">
@@ -176,8 +181,11 @@
 
   <footer class="action-bar">
     <button class="btn btn-buy" onclick="trade('BUY25')">Buy 25%</button>
-    <button class="btn btn-hold" onclick="nextDay()">Hold</button>
-    <button class="btn btn-sell" onclick="trade('SELL25')">Sell 25%</button>
+    <button class="btn btn-hold" onclick="nextDay()">Hold / Next</button>
+    <button class="btn btn-profit" onclick="trade('SELL_PROFIT')">Sell Profit</button>
+    
+    <button class="btn btn-sell" onclick="trade('SELL_TSL')">Sell on TSL</button>
+    <button class="btn btn-sell" onclick="trade('SELL_REGIME')">Sell Regime</button>
     <button class="btn btn-sell" onclick="trade('SELLALL')">Sell All</button>
   </footer>
 </div>
@@ -185,9 +193,13 @@
 <script>
 let fullHistory = [], globalLiveData = [];
 let currentIdx = 0, simStartIdx = 0, chart = null, liveChart = null;
-let cash = 100000, units = 0;
+let cash = 100000, units = 0, principalInvested = 0; 
 let tradeLog = []; 
-let currentFundCode = '118989'; // Default HDFC
+let currentFundCode = '118989';
+
+// Alert Tracking Variables
+let prevRegime = null;
+let prevNav = null;
 
 function selectFund(code, element) {
   currentFundCode = code;
@@ -209,7 +221,6 @@ async function fetchFundData() {
   }
 }
 
-// --- SHARED PLUGIN FOR BOTH CHARTS (TSL & PC/NC) ---
 const universalAnnotationsPlugin = {
   id: 'universalAnnotations',
   afterDatasetsDraw(chart) {
@@ -221,7 +232,6 @@ const universalAnnotationsPlugin = {
     
     ctx.save();
     
-    // --- 1. TSL Lines Logic (Full Horizontal Line) ---
     let swingLows = [];
     for(let i = data.length - 3; i >= 2; i--) {
       if(data[i] < data[i-1] && data[i] < data[i-2] && data[i] <= data[i+1] && data[i] <= data[i+2]) {
@@ -232,8 +242,8 @@ const universalAnnotationsPlugin = {
       }
     }
 
-    const startX_edge = meta.data[0].x; // Far Left edge of chart
-    const endX_edge = meta.data[data.length - 1].x; // Far Right edge
+    const startX_edge = meta.data[0].x; 
+    const endX_edge = meta.data[data.length - 1].x; 
 
     if(swingLows.length > 0) {
       ctx.lineWidth = 1;
@@ -242,35 +252,27 @@ const universalAnnotationsPlugin = {
 
       swingLows.forEach((low, i) => {
         const yPos = chart.scales.y.getPixelForValue(low.val);
-        
         ctx.beginPath();
         ctx.strokeStyle = i === 0 ? '#ef4444' : '#f59e0b'; 
         ctx.fillStyle = ctx.strokeStyle;
-        
-        // Draw Full Line
         ctx.moveTo(startX_edge, yPos);
         ctx.lineTo(endX_edge, yPos);
         ctx.stroke();
-        
-        // Draw Price Text on the LEFT side
         ctx.textAlign = 'left';
         ctx.fillText(`TSL ${i+1}: ₹${low.val.toFixed(2)}`, startX_edge + 5, yPos - 5);
       });
     }
 
-    // --- 2. PC/NC Consolidation Logic ---
     if(wma.length > 0) {
       ctx.font = '8px "Space Mono"';
       ctx.textAlign = 'center';
       ctx.setLineDash([]); 
-      
       let lastLabelIdx = -10;
       for(let i = 5; i < data.length; i++) {
         if(i - lastLabelIdx < 8) continue; 
         let window = data.slice(i-5, i+1);
         let max = Math.max(...window);
         let min = Math.min(...window);
-        
         if((max - min) / min < 0.015 && wma[i] != null) {
           let x = meta.data[i-2].x; 
           if(data[i] > wma[i]) {
@@ -286,7 +288,6 @@ const universalAnnotationsPlugin = {
       }
     }
 
-    // --- 3. Last NAV Line (Only active if it's the live chart, identified by ID) ---
     if(chart.canvas.id === 'liveChartCanvas') {
         const lastVal = data[data.length - 1];
         const lastYPos = chart.scales.y.getPixelForValue(lastVal);
@@ -300,12 +301,10 @@ const universalAnnotationsPlugin = {
         ctx.textAlign = 'right';
         ctx.fillText(`NOW: ₹${lastVal.toFixed(2)}`, endX_edge - 5, lastYPos - 5);
     }
-
     ctx.restore();
   }
 };
 
-// --- LIVE CHART LOGIC ---
 async function initLive() {
   document.getElementById('ovTxt').textContent = "FETCHING LIVE...";
   globalLiveData = await fetchFundData();
@@ -313,12 +312,11 @@ async function initLive() {
   document.getElementById('setupScreen').style.display = 'none';
   document.getElementById('liveModal').style.display = 'flex';
   
-  // Reset buttons visually to 6M
   const btns = document.getElementById('liveTfRow').children;
   for(let b of btns) b.classList.remove('active');
-  btns[4].classList.add('active'); // 6M button
+  btns[4].classList.add('active'); 
 
-  updateLiveChart(125); // Default to 6 Months
+  updateLiveChart(125); 
 }
 
 function updateLiveChart(days, btnElement) {
@@ -328,10 +326,7 @@ function updateLiveChart(days, btnElement) {
     btnElement.classList.add('active');
   }
 
-  // Slice based on selected timeframe
   const dataSlice = globalLiveData.slice(-days);
-  
-  // Calculate WMA for the live slice using preceding global data
   const wmaSlice = dataSlice.map((_, i) => {
     const actualIdx = globalLiveData.length - dataSlice.length + i;
     const windowPrices = globalLiveData.slice(Math.max(0, actualIdx - 19), actualIdx + 1).map(h => h.nav);
@@ -363,7 +358,6 @@ function closeLive() {
   document.getElementById('setupScreen').style.display = 'flex';
 }
 
-// --- TRADE LOG LOGIC ---
 function showLog() {
   const tbody = document.getElementById('logBody');
   tbody.innerHTML = '';
@@ -371,7 +365,8 @@ function showLog() {
     tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">No trades executed yet.</td></tr>';
   } else {
     tradeLog.forEach(t => {
-      const colorClass = t.action.includes('BUY') ? 'log-buy' : 'log-sell';
+      let colorClass = t.action.includes('BUY') ? 'log-buy' : 'log-sell';
+      if(t.action.includes('PROFIT')) colorClass = 'log-profit';
       tbody.innerHTML += `<tr><td>Day ${t.day}</td><td class="${colorClass}">${t.action}</td><td>₹${t.nav.toFixed(2)}</td><td>${t.units.toFixed(2)}</td></tr>`;
     });
   }
@@ -379,14 +374,21 @@ function showLog() {
 }
 function closeLog() { document.getElementById('logModal').style.display = 'none'; }
 
-// --- GAME LOGIC ---
 async function initGame() {
   document.getElementById('ovTxt').textContent = "SYNCING SIMULATION...";
   fullHistory = await fetchFundData();
   if(!fullHistory.length) return;
   simStartIdx = Math.floor(Math.random() * (fullHistory.length - 450)) + 200;
   currentIdx = simStartIdx;
+  
   tradeLog = []; 
+  cash = 100000;
+  units = 0;
+  principalInvested = 0; 
+  prevRegime = null;
+  prevNav = null;
+
+  document.getElementById('alertBanner').style.display = 'none';
   document.getElementById('setupScreen').style.display = 'none';
   document.getElementById('gameUI').style.display = 'flex';
   updateDisplay();
@@ -418,6 +420,44 @@ function calculateWMA(prices, period = 20) {
   return sum / weightSum;
 }
 
+function checkAlerts(currentRegime, currentNav, chartData) {
+  const banner = document.getElementById('alertBanner');
+  let alertMsg = "";
+
+  // Find current TSL 1
+  let tsl1 = null;
+  for(let i = chartData.length - 3; i >= 2; i--) {
+    if(chartData[i].nav < chartData[i-1].nav && chartData[i].nav < chartData[i-2].nav && chartData[i].nav <= chartData[i+1].nav && chartData[i].nav <= chartData[i+2].nav) {
+      tsl1 = chartData[i].nav;
+      break;
+    }
+  }
+
+  // Check Regime Downgrade
+  if (prevRegime && currentRegime !== prevRegime) {
+    if ((prevRegime === 'A' && (currentRegime === 'B' || currentRegime === 'C')) || 
+        (prevRegime === 'B' && currentRegime === 'C')) {
+      alertMsg = `⚠️ REGIME DOWNGRADE: ${prevRegime} ➔ ${currentRegime} `;
+    }
+  }
+
+  // Check TSL Breakdown (Price dropped below TSL today)
+  if (tsl1 && prevNav && prevNav >= tsl1 && currentNav < tsl1) {
+    if(alertMsg !== "") alertMsg += " | ";
+    alertMsg += `🚨 TSL BREAKDOWN (₹${tsl1.toFixed(2)})`;
+  }
+
+  if (alertMsg !== "") {
+    banner.textContent = alertMsg;
+    banner.style.display = 'block';
+  } else {
+    banner.style.display = 'none'; // Clear banner if no new alert today
+  }
+
+  prevRegime = currentRegime;
+  prevNav = currentNav;
+}
+
 function updateDisplay() {
   const visible = fullHistory.slice(0, currentIdx + 1);
   const currentNav = visible[visible.length - 1].nav;
@@ -437,32 +477,26 @@ function updateDisplay() {
   document.getElementById('dRsi').style.color = color(dRsi);
   document.getElementById('wRsi').style.color = color(wRsi);
 
+  let currentRegime = wRsi >= 50 ? 'A' : (wRsi >= 40 ? 'B' : 'C');
   const block = document.getElementById('regimeBlock');
-  block.className = 'ind-val ' + (wRsi >= 50 ? 'reg-A' : (wRsi >= 40 ? 'reg-B' : 'reg-C'));
-  block.textContent = wRsi >= 50 ? "Regime A" : (wRsi >= 40 ? "Regime B" : "Regime C");
+  block.className = 'ind-val ' + (currentRegime === 'A' ? 'reg-A' : (currentRegime === 'B' ? 'reg-B' : 'reg-C'));
+  block.textContent = "Regime " + currentRegime;
 
-  // NEW PSYCHOLOGY LOGIC - 50% Reduced Spacing using CSS div margins
   let logicLines = [];
-  if (wRsi >= 50) {
+  if (currentRegime === 'A') {
     if (dRsi <= 50) {
       logicLines = ["Optimal Entry Window.", "Institutional trend is intact, but retail fear is creating a short-term dip.", "Execute your tranche without hesitation.", "Trust the Weekly RSI, ignore the daily noise."];
     } else {
       logicLines = ["Structural Bull Trend.", "Institutions are actively accumulating.", "Ride the momentum and respect your Trailing Stop Loss (TSL).", "Avoid FOMO buying here; wait for a Daily RSI dip to add capital."];
     }
-  } else if (wRsi >= 40) {
+  } else if (currentRegime === 'B') {
     logicLines = ["Regime B Fatigue.", "Smart money buying has paused.", "The market is chopping sideways to trap impatient capital.", "Halt all fresh buying.", "Manage existing trades strictly using your TSL."];
   } else {
     logicLines = ["Trust Cycle Broken.", "Institutions are actively distributing (selling).", "Do not let 'cheap prices' or 'good news' trick you into catching a falling knife.", "Capital preservation is your only goal.", "Stay in cash."];
   }
-  
-  // Wrapped in divs instead of double breaklines to cut spacing in half
   document.getElementById('psyMsg').innerHTML = logicLines.map((line, index) => `<div style="margin-bottom: 5px;">(${index + 1}) ${line}</div>`).join('');
 
   updateStats(currentNav);
-  
-  // Render Game Chart
-  const ctx = document.getElementById('mainChart').getContext('2d');
-  if(chart) chart.destroy();
   
   const chartData = visible.slice(-80);
   const wmaData = chartData.map((_, i) => {
@@ -471,9 +505,20 @@ function updateDisplay() {
     return calculateWMA(windowPrices, 20);
   });
 
+  // Check for Alerts before rendering
+  if(currentIdx > simStartIdx) {
+      checkAlerts(currentRegime, currentNav, chartData);
+  } else {
+      prevRegime = currentRegime;
+      prevNav = currentNav;
+  }
+
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  if(chart) chart.destroy();
+
   chart = new Chart(ctx, {
     type: 'line',
-    plugins: [universalAnnotationsPlugin], // Using the shared plugin!
+    plugins: [universalAnnotationsPlugin],
     data: {
       labels: chartData.map((_, i) => i),
       datasets: [
@@ -500,15 +545,27 @@ function trade(action) {
       unitsTraded = amtTraded / nav; 
       units += unitsTraded; 
       cash -= amtTraded; 
+      principalInvested += amtTraded; 
       tradeLog.push({ day: dayNum, action: 'BUY', nav: nav, units: unitsTraded });
     }
-  } else if (action === 'SELL25') {
-    unitsTraded = units * 0.25;
+  } else if (action === 'SELL_PROFIT') {
+    const currentValue = units * nav;
+    const profit = currentValue - principalInvested;
+    if (profit > 10) {
+        unitsTraded = profit / nav;
+        cash += profit;
+        units -= unitsTraded;
+        tradeLog.push({ day: dayNum, action: 'SELL PROFIT', nav: nav, units: unitsTraded });
+    }
+  } else if (action === 'SELL_TSL' || action === 'SELL_REGIME') {
+    unitsTraded = units;
     if(unitsTraded > 0.001) {
-      amtTraded = unitsTraded * nav;
-      cash += amtTraded;
-      units -= unitsTraded;
-      tradeLog.push({ day: dayNum, action: 'SELL 25%', nav: nav, units: unitsTraded });
+      amtTraded = unitsTraded * nav; 
+      cash += amtTraded; 
+      units = 0; 
+      principalInvested = 0; 
+      let logText = action === 'SELL_TSL' ? 'SELL ON TSL' : 'SELL REGIME';
+      tradeLog.push({ day: dayNum, action: logText, nav: nav, units: unitsTraded });
     }
   } else if (action === 'SELLALL') { 
     unitsTraded = units;
@@ -516,13 +573,19 @@ function trade(action) {
       amtTraded = unitsTraded * nav; 
       cash += amtTraded; 
       units = 0; 
+      principalInvested = 0; 
       tradeLog.push({ day: dayNum, action: 'SELL ALL', nav: nav, units: unitsTraded });
     }
   }
+  
+  document.getElementById('alertBanner').style.display = 'none'; // Clear alert on action
   nextDay();
 }
 
-function nextDay() { if(currentIdx < fullHistory.length - 1) { currentIdx++; updateDisplay(); } }
+function nextDay() { 
+    document.getElementById('alertBanner').style.display = 'none'; // Clear alert on next day
+    if(currentIdx < fullHistory.length - 1) { currentIdx++; updateDisplay(); } 
+}
 
 function updateStats(nav) {
   const pVal = units * nav;
