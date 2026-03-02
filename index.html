@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MF Lie Detector - Pro Mastery v3.3</title>
+<title>MF Lie Detector - Pro Mastery v3.4</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -29,7 +29,7 @@
   .nw-val { font-family: var(--mono); font-size: 1.2rem; font-weight: 400; color: var(--text); } 
 
   /* Main Layout */
-  .main-sim { flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; padding-bottom: 70px; }
+  .main-sim { flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; padding-bottom: 110px; } /* Increased padding for taller action bar */
   
   /* Chart */
   .chart-container { background: var(--bg); padding: 5px; height: 35vh; min-height: 220px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; }
@@ -50,22 +50,33 @@
 
   /* Psychology Box */
   .psy-box { padding: 8px 12px; background: var(--surface); flex-grow: 1; overflow-y: auto; }
-  .psy-logic { font-size: 0.8rem; color: var(--text); font-style: italic; border-left: 2px solid var(--accent); padding-left: 8px; margin-top: 4px; line-height: 1.4; }
+  .psy-logic { font-size: 0.85rem; color: var(--text); font-style: italic; border-left: 2px solid var(--accent); padding-left: 10px; margin-top: 6px; line-height: 1.5; }
 
-  /* Action Bar */
-  .action-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--surface2); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 10px; z-index: 200; gap: 6px; }
-  .btn { flex: 1; font-family: var(--mono); font-weight: 700; padding: 10px 0; border-radius: 4px; cursor: pointer; border: 1px solid transparent; text-transform: uppercase; font-size: 0.75rem; }
+  /* Action Bar - Converted to Grid for 4 buttons */
+  .action-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--surface2); border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; z-index: 200; }
+  @media (min-width: 600px) { .action-bar { grid-template-columns: 1fr 1fr 1fr 1fr; } }
+  
+  /* Buttons - Font size matches Regime, Removed Bold */
+  .btn { font-family: var(--mono); font-weight: 400; font-size: 1.1rem; padding: 12px 0; border-radius: 4px; cursor: pointer; border: 1px solid transparent; text-transform: uppercase; }
   .btn-buy { border-color: var(--accent); color: var(--accent); background: transparent; }
   .btn-sell { border-color: var(--red); color: var(--red); background: transparent; }
   .btn-hold { border-color: var(--muted); color: var(--muted); background: transparent; }
-  .btn-live { border-color: var(--accent2); color: var(--bg); background: var(--accent2); padding: 8px 15px; }
+  .btn-live { border-color: var(--accent2); color: var(--bg); background: var(--accent2); padding: 8px 15px; font-weight: 700; border-radius: 4px; border: none; cursor: pointer;}
+  .btn-log { background: var(--surface2); color: var(--text); border: 1px solid var(--border); padding: 4px 10px; font-size: 0.75rem; font-family: var(--mono); cursor: pointer; border-radius: 4px; }
 
-  /* Setup Screen */
+  /* Setup Screen & Modals */
   #setupScreen { position: fixed; inset: 0; background: var(--bg); z-index: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center; }
   .dropdown { background: var(--surface2); border: 1px solid var(--border); color: white; padding: 12px; width: 100%; max-width: 320px; margin-bottom: 1rem; border-radius: 6px; font-family: var(--sans); }
   
-  #liveModal { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 600; flex-direction: column; }
-  .modal-close { padding: 15px; text-align: right; color: var(--red); font-weight: bold; font-family: var(--mono); cursor: pointer; }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 600; flex-direction: column; }
+  .modal-close { padding: 15px; text-align: right; color: var(--red); font-weight: bold; font-family: var(--mono); cursor: pointer; border-bottom: 1px solid var(--border); background: var(--surface); }
+
+  /* Trade Log Table */
+  .log-table { width: 100%; font-family: var(--mono); font-size: 0.8rem; text-align: left; border-collapse: collapse; }
+  .log-table th { padding: 10px 5px; border-bottom: 1px solid var(--border); color: var(--muted); }
+  .log-table td { padding: 10px 5px; border-bottom: 1px solid #1e293b; }
+  .log-buy { color: var(--accent); }
+  .log-sell { color: var(--red); }
 
   #ov { display: none; position: fixed; inset: 0; background: rgba(8,11,18,0.95); z-index: 1000; align-items: center; justify-content: center; flex-direction: column; }
   .spin { width: 35px; height: 35px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
@@ -77,8 +88,8 @@
 <div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.7rem; margin-top: 10px;" id="ovTxt">SYNCING...</div></div>
 
 <div id="setupScreen">
-  <h1 style="margin-bottom: 0.5rem; font-size: 1.8rem;">Mastery Sim v3.3</h1>
-  <p style="color:var(--muted); font-size: 0.8rem; margin-bottom: 1.5rem;">Pro Psychology & Live Dates</p>
+  <h1 style="margin-bottom: 0.5rem; font-size: 1.8rem;">Mastery Sim v3.4</h1>
+  <p style="color:var(--muted); font-size: 0.8rem; margin-bottom: 1.5rem;">Trade Log & 4-Action Grid</p>
   <select id="fundSelect" class="dropdown">
     <option value="118989">HDFC Flexi Cap - Direct Growth</option>
     <option value="119062">ICICI Pru Flexicap - Direct Growth</option>
@@ -86,20 +97,33 @@
     <option value="103096">Kotak Flexicap - Direct Growth</option>
   </select>
   <div style="display: flex; gap: 10px; width: 100%; max-width: 320px;">
-    <button class="btn btn-buy" style="flex: 2;" onclick="initGame()">Start Sim</button>
+    <button class="btn btn-buy" style="flex: 2; font-weight: 700;" onclick="initGame()">Start Sim</button>
     <button class="btn btn-live" style="flex: 1;" onclick="showLive()">Live</button>
   </div>
 </div>
 
-<div id="liveModal">
+<div id="liveModal" class="modal-overlay">
   <div class="modal-close" onclick="closeLive()">[ X ] CLOSE LIVE CHART</div>
   <div style="flex-grow: 1; position: relative; padding: 5px 10px 10px 10px;"><canvas id="liveChartCanvas"></canvas></div>
 </div>
 
+<div id="logModal" class="modal-overlay">
+  <div class="modal-close" onclick="closeLog()">[ X ] CLOSE TRADE LOG</div>
+  <div style="flex-grow: 1; overflow-y: auto; padding: 10px;">
+    <table class="log-table">
+      <thead><tr><th>DAY</th><th>ACTION</th><th>NAV</th><th>UNITS</th></tr></thead>
+      <tbody id="logBody"></tbody>
+    </table>
+  </div>
+</div>
+
 <div id="gameUI" style="display: none; height: 100vh; flex-direction: column;">
   <header class="app-header">
-    <div class="logo">LIE DETECTOR V3.3</div>
-    <div style="font-family: var(--mono); font-size: 0.7rem; color: var(--accent2);">WMA 20 + TSL</div>
+    <div class="logo">LIE DETECTOR V3.4</div>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <div style="font-family: var(--mono); font-size: 0.7rem; color: var(--accent2);">WMA 20</div>
+      <button class="btn-log" onclick="showLog()">TRADE LOG</button>
+    </div>
   </header>
 
   <div class="networth-header">
@@ -130,15 +154,17 @@
   </main>
 
   <footer class="action-bar">
-    <button class="btn btn-buy" onclick="trade('BUY')">Buy 25%</button>
+    <button class="btn btn-buy" onclick="trade('BUY25')">Buy 25%</button>
     <button class="btn btn-hold" onclick="nextDay()">Hold</button>
-    <button class="btn btn-sell" onclick="trade('SELL')">Sell All</button>
+    <button class="btn btn-sell" onclick="trade('SELL25')">Sell 25%</button>
+    <button class="btn btn-sell" onclick="trade('SELLALL')">Sell All</button>
   </footer>
 </div>
 
 <script>
 let fullHistory = [], currentIdx = 0, simStartIdx = 0, chart = null, liveChart = null;
 let cash = 100000, units = 0;
+let tradeLog = []; // Stores trade history
 
 async function fetchFundData() {
   const code = document.getElementById('fundSelect').value;
@@ -155,7 +181,7 @@ async function fetchFundData() {
   }
 }
 
-// PLUGIN FOR LIVE CHART (TSL + Last NAV Line)
+// --- LIVE CHART LOGIC ---
 const liveAnnotationsPlugin = {
   id: 'liveAnnotations',
   afterDatasetsDraw(chart) {
@@ -165,7 +191,6 @@ const liveAnnotationsPlugin = {
     if(!data || data.length === 0) return;
     
     ctx.save();
-    
     let swingLows = [];
     for(let i = data.length - 3; i >= 2; i--) {
       if(data[i] < data[i-1] && data[i] < data[i-2] && data[i] <= data[i+1] && data[i] <= data[i+2]) {
@@ -188,22 +213,18 @@ const liveAnnotationsPlugin = {
       swingLows.forEach((low, i) => {
         const yPos = chart.scales.y.getPixelForValue(low.val);
         const startX = meta.data[low.idx].x;
-        
         ctx.beginPath();
         ctx.strokeStyle = i === 0 ? '#ef4444' : '#f59e0b';
         ctx.fillStyle = ctx.strokeStyle;
-        
         ctx.moveTo(startX, yPos);
         ctx.lineTo(endX, yPos);
         ctx.stroke();
-        
         ctx.fillText(`TSL ${i+1}`, endX - 5, yPos - 5);
       });
     }
 
     const lastVal = data[data.length - 1];
     const lastYPos = chart.scales.y.getPixelForValue(lastVal);
-    
     ctx.beginPath();
     ctx.setLineDash([2, 4]); 
     ctx.strokeStyle = '#10b981'; 
@@ -211,10 +232,8 @@ const liveAnnotationsPlugin = {
     ctx.moveTo(startX_chart, lastYPos);
     ctx.lineTo(endX, lastYPos);
     ctx.stroke();
-    
     ctx.textAlign = 'left';
     ctx.fillText(`₹${lastVal.toFixed(2)}`, startX_chart + 5, lastYPos - 5);
-    
     ctx.restore();
   }
 };
@@ -226,30 +245,20 @@ async function showLive() {
   document.getElementById('setupScreen').style.display = 'none';
   document.getElementById('liveModal').style.display = 'flex';
   
-  const liveData = data.slice(-125); // ~6 months
-  
+  const liveData = data.slice(-125); 
   const ctx = document.getElementById('liveChartCanvas').getContext('2d');
   if(liveChart) liveChart.destroy();
   liveChart = new Chart(ctx, {
     type: 'line',
     plugins: [liveAnnotationsPlugin],
     data: {
-      labels: liveData.map(d => d.date), // Dates included here
+      labels: liveData.map(d => d.date),
       datasets: [{ data: liveData.map(d => d.nav), borderColor: '#f59e0b', borderWidth: 2, pointRadius: 0, fill: true, backgroundColor: 'rgba(245, 158, 11, 0.05)' }]
     },
     options: { 
-      responsive: true, 
-      maintainAspectRatio: false, 
-      plugins: { legend: { display: false } }, 
+      responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, 
       layout: { padding: { top: 15, bottom: 5 } },
-      scales: { 
-        x: { 
-          display: true, // X-Axis Dates enabled
-          grid: { display: false },
-          ticks: { maxTicksLimit: 6, color: '#94a3b8', font: { size: 9, family: '"Space Mono"' } }
-        }, 
-        y: { grid: { color: '#1e293b' } } 
-      } 
+      scales: { x: { display: true, grid: { display: false }, ticks: { maxTicksLimit: 6, color: '#94a3b8', font: { size: 9, family: '"Space Mono"' } } }, y: { grid: { color: '#1e293b' } } } 
     }
   });
 }
@@ -259,12 +268,40 @@ function closeLive() {
   document.getElementById('setupScreen').style.display = 'flex';
 }
 
+// --- TRADE LOG LOGIC ---
+function showLog() {
+  const tbody = document.getElementById('logBody');
+  tbody.innerHTML = '';
+  
+  if(tradeLog.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">No trades executed yet.</td></tr>';
+  } else {
+    tradeLog.forEach(t => {
+      const colorClass = t.action.includes('BUY') ? 'log-buy' : 'log-sell';
+      const row = `<tr>
+        <td>Day ${t.day}</td>
+        <td class="${colorClass}">${t.action}</td>
+        <td>₹${t.nav.toFixed(2)}</td>
+        <td>${t.units.toFixed(2)}</td>
+      </tr>`;
+      tbody.innerHTML += row;
+    });
+  }
+  document.getElementById('logModal').style.display = 'flex';
+}
+
+function closeLog() {
+  document.getElementById('logModal').style.display = 'none';
+}
+
+// --- GAME LOGIC ---
 async function initGame() {
   document.getElementById('ovTxt').textContent = "SYNCING SIMULATION...";
   fullHistory = await fetchFundData();
   if(!fullHistory.length) return;
   simStartIdx = Math.floor(Math.random() * (fullHistory.length - 450)) + 200;
   currentIdx = simStartIdx;
+  tradeLog = []; // Reset log on new game
   document.getElementById('setupScreen').style.display = 'none';
   document.getElementById('gameUI').style.display = 'flex';
   updateDisplay();
@@ -315,35 +352,88 @@ function updateDisplay() {
   document.getElementById('dRsi').style.color = color(dRsi);
   document.getElementById('wRsi').style.color = color(wRsi);
 
+  // Updated to Regime A, B, C
   const block = document.getElementById('regimeBlock');
   block.className = 'ind-val ' + (wRsi >= 50 ? 'reg-A' : (wRsi >= 40 ? 'reg-B' : 'reg-C'));
-  block.textContent = wRsi >= 50 ? "Regime A" : (wRsi >= 40 ? "Regime 2" : "Regime 3");
+  block.textContent = wRsi >= 50 ? "Regime A" : (wRsi >= 40 ? "Regime B" : "Regime C");
 
-  // NEW PSYCHOLOGY LOGIC ENGINE
-  let msg = "";
+  // NEW PSYCHOLOGY LOGIC ENGINE - Array based for line breaks
+  let logicLines = [];
   if (wRsi >= 50) {
     if (dRsi <= 50) {
-      msg = "Optimal Entry Window. Institutional trend is intact, but retail fear is creating a short-term dip. Execute your tranche without hesitation. Trust the Weekly RSI, ignore the daily noise.";
+      logicLines = [
+        "Optimal Entry Window.", 
+        "Institutional trend is intact, but retail fear is creating a short-term dip.", 
+        "Execute your tranche without hesitation.", 
+        "Trust the Weekly RSI, ignore the daily noise."
+      ];
     } else {
-      msg = "Structural Bull Trend. Institutions are actively accumulating. Ride the momentum and respect your Trailing Stop Loss (TSL). Avoid FOMO buying here; wait for a Daily RSI dip to add capital.";
+      logicLines = [
+        "Structural Bull Trend.", 
+        "Institutions are actively accumulating.", 
+        "Ride the momentum and respect your Trailing Stop Loss (TSL).", 
+        "Avoid FOMO buying here; wait for a Daily RSI dip to add capital."
+      ];
     }
   } else if (wRsi >= 40) {
-    msg = "Regime 2 Fatigue. Smart money buying has paused. The market is chopping sideways to trap impatient capital. Halt all fresh buying. Manage existing trades strictly using your TSL.";
+    logicLines = [
+      "Regime B Fatigue.", 
+      "Smart money buying has paused.", 
+      "The market is chopping sideways to trap impatient capital.", 
+      "Halt all fresh buying.", 
+      "Manage existing trades strictly using your TSL."
+    ];
   } else {
-    msg = "Trust Cycle Broken. Institutions are actively distributing (selling). Do not let 'cheap prices' or 'good news' trick you into catching a falling knife. Capital preservation is your only goal. Stay in cash.";
+    logicLines = [
+      "Trust Cycle Broken.", 
+      "Institutions are actively distributing (selling).", 
+      "Do not let 'cheap prices' or 'good news' trick you into catching a falling knife.", 
+      "Capital preservation is your only goal.", 
+      "Stay in cash."
+    ];
   }
-  document.getElementById('psyMsg').textContent = msg;
+  
+  // Join the array with double line breaks and index numbers
+  document.getElementById('psyMsg').innerHTML = logicLines.map((line, index) => `(${index + 1}) ${line}`).join('<br><br>');
 
   updateStats(currentNav);
   renderChart(visible.slice(-80));
 }
 
-function trade(type) {
+function trade(action) {
   const nav = fullHistory[currentIdx].nav;
-  if(type === 'BUY') { 
-    const amt = cash * 0.25; 
-    if(amt > 10) { units += amt / nav; cash -= amt; }
-  } else { cash += units * nav; units = 0; }
+  const dayNum = currentIdx - simStartIdx;
+  let amtTraded = 0;
+  let unitsTraded = 0;
+
+  if (action === 'BUY25') { 
+    amtTraded = cash * 0.25; 
+    if(amtTraded > 10) { 
+      unitsTraded = amtTraded / nav; 
+      units += unitsTraded; 
+      cash -= amtTraded; 
+      tradeLog.push({ day: dayNum, action: 'BUY', nav: nav, units: unitsTraded });
+    }
+  } else if (action === 'SELL25') {
+    unitsTraded = units * 0.25;
+    if(unitsTraded > 0.001) {
+      amtTraded = unitsTraded * nav;
+      cash += amtTraded;
+      units -= unitsTraded;
+      tradeLog.push({ day: dayNum, action: 'SELL 25%', nav: nav, units: unitsTraded });
+    }
+  } else if (action === 'SELLALL') { 
+    unitsTraded = units;
+    if(unitsTraded > 0.001) {
+      amtTraded = unitsTraded * nav; 
+      cash += amtTraded; 
+      units = 0; 
+      tradeLog.push({ day: dayNum, action: 'SELL ALL', nav: nav, units: unitsTraded });
+    }
+  }
+  
+  // Only advance to the next day if a trade button was clicked, not if holding. 
+  // Wait, holding also advances. The Hold button directly calls nextDay().
   nextDay();
 }
 
@@ -366,7 +456,6 @@ const customAnnotationsPlugin = {
     const wma = chart.data.datasets[1].data;
     
     ctx.save();
-    
     let swingLows = [];
     for(let i = data.length - 3; i >= 2; i--) {
       if(data[i] < data[i-1] && data[i] < data[i-2] && data[i] <= data[i+1] && data[i] <= data[i+2]) {
@@ -387,15 +476,12 @@ const customAnnotationsPlugin = {
         const yPos = chart.scales.y.getPixelForValue(low.val);
         const startX = meta.data[low.idx].x;
         const endX = meta.data[data.length - 1].x;
-        
         ctx.beginPath();
         ctx.strokeStyle = i === 0 ? '#ef4444' : '#f59e0b'; 
         ctx.fillStyle = ctx.strokeStyle;
-        
         ctx.moveTo(startX, yPos);
         ctx.lineTo(endX, yPos);
         ctx.stroke();
-        
         ctx.fillText(`TSL ${i+1}`, endX - 5, yPos - 5);
       });
     }
@@ -407,7 +493,6 @@ const customAnnotationsPlugin = {
     let lastLabelIdx = -10;
     for(let i = 5; i < data.length; i++) {
       if(i - lastLabelIdx < 8) continue; 
-      
       let window = data.slice(i-5, i+1);
       let max = Math.max(...window);
       let min = Math.min(...window);
