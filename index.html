@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MF Lie Detector - Pro Mastery v3.1</title>
+<title>MF Lie Detector - Pro Mastery v3.2</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -26,7 +26,7 @@
   .networth-header { display: flex; justify-content: space-around; background: var(--surface2); border-bottom: 1px solid var(--border); padding: 8px 5px; }
   .nw-col { display: flex; flex-direction: column; align-items: center; }
   .nw-lbl { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); text-transform: uppercase; margin-bottom: 2px; }
-  .nw-val { font-family: var(--mono); font-size: 1.2rem; font-weight: 700; color: var(--text); } 
+  .nw-val { font-family: var(--mono); font-size: 1.2rem; font-weight: 400; color: var(--text); } /* Removed Bold */
 
   /* Main Layout */
   .main-sim { flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; padding-bottom: 70px; }
@@ -77,8 +77,8 @@
 <div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.7rem; margin-top: 10px;" id="ovTxt">SYNCING...</div></div>
 
 <div id="setupScreen">
-  <h1 style="margin-bottom: 0.5rem; font-size: 1.8rem;">Mastery Sim v3.1</h1>
-  <p style="color:var(--muted); font-size: 0.8rem; margin-bottom: 1.5rem;">Swing Low TSL Engine Enabled</p>
+  <h1 style="margin-bottom: 0.5rem; font-size: 1.8rem;">Mastery Sim v3.2</h1>
+  <p style="color:var(--muted); font-size: 0.8rem; margin-bottom: 1.5rem;">Live TSL & Typography Update</p>
   <select id="fundSelect" class="dropdown">
     <option value="118989">HDFC Flexi Cap - Direct Growth</option>
     <option value="119062">ICICI Pru Flexicap - Direct Growth</option>
@@ -98,7 +98,7 @@
 
 <div id="gameUI" style="display: none; height: 100vh; flex-direction: column;">
   <header class="app-header">
-    <div class="logo">LIE DETECTOR V3.1</div>
+    <div class="logo">LIE DETECTOR V3.2</div>
     <div style="font-family: var(--mono); font-size: 0.7rem; color: var(--accent2);">WMA 20 + TSL</div>
   </header>
 
@@ -112,7 +112,7 @@
     <div class="chart-container">
       <div class="chart-header">
         <span class="label-sm" id="simDay">Day 0</span>
-        <span style="font-family: var(--mono); font-size: 0.9rem; font-weight: 700;" id="simNav">NAV: --</span>
+        <span style="font-family: var(--mono); font-size: 0.9rem; font-weight: 400;" id="simNav">NAV: --</span>
       </div>
       <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
     </div>
@@ -155,6 +155,72 @@ async function fetchFundData() {
   }
 }
 
+// PLUGIN FOR LIVE CHART (TSL + Last NAV Line)
+const liveAnnotationsPlugin = {
+  id: 'liveAnnotations',
+  afterDatasetsDraw(chart) {
+    const ctx = chart.ctx;
+    const meta = chart.getDatasetMeta(0);
+    const data = chart.data.datasets[0].data;
+    if(!data || data.length === 0) return;
+    
+    ctx.save();
+    
+    // --- 1. TSL Lines Logic ---
+    let swingLows = [];
+    for(let i = data.length - 3; i >= 2; i--) {
+      if(data[i] < data[i-1] && data[i] < data[i-2] && data[i] <= data[i+1] && data[i] <= data[i+2]) {
+        if(swingLows.length === 0 || (swingLows[swingLows.length-1].idx - i) > 4) {
+          swingLows.push({ idx: i, val: data[i] });
+        }
+        if(swingLows.length === 2) break;
+      }
+    }
+
+    const endX = meta.data[data.length - 1].x;
+    const startX_chart = meta.data[0].x;
+
+    if(swingLows.length > 0) {
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      ctx.font = '9px "Space Mono"';
+      ctx.textAlign = 'right';
+
+      swingLows.forEach((low, i) => {
+        const yPos = chart.scales.y.getPixelForValue(low.val);
+        const startX = meta.data[low.idx].x;
+        
+        ctx.beginPath();
+        ctx.strokeStyle = i === 0 ? '#ef4444' : '#f59e0b';
+        ctx.fillStyle = ctx.strokeStyle;
+        
+        ctx.moveTo(startX, yPos);
+        ctx.lineTo(endX, yPos);
+        ctx.stroke();
+        
+        ctx.fillText(`TSL ${i+1}`, endX - 5, yPos - 5);
+      });
+    }
+
+    // --- 2. Last NAV Line Logic ---
+    const lastVal = data[data.length - 1];
+    const lastYPos = chart.scales.y.getPixelForValue(lastVal);
+    
+    ctx.beginPath();
+    ctx.setLineDash([2, 4]); 
+    ctx.strokeStyle = '#10b981'; 
+    ctx.fillStyle = '#10b981';
+    ctx.moveTo(startX_chart, lastYPos);
+    ctx.lineTo(endX, lastYPos);
+    ctx.stroke();
+    
+    ctx.textAlign = 'left';
+    ctx.fillText(`₹${lastVal.toFixed(2)}`, startX_chart + 5, lastYPos - 5);
+    
+    ctx.restore();
+  }
+};
+
 async function showLive() {
   document.getElementById('ovTxt').textContent = "FETCHING LIVE...";
   const data = await fetchFundData();
@@ -162,15 +228,25 @@ async function showLive() {
   document.getElementById('setupScreen').style.display = 'none';
   document.getElementById('liveModal').style.display = 'flex';
   
+  // Slice to 125 days (approx 6 months of trading days)
+  const liveData = data.slice(-125);
+  
   const ctx = document.getElementById('liveChartCanvas').getContext('2d');
   if(liveChart) liveChart.destroy();
   liveChart = new Chart(ctx, {
     type: 'line',
+    plugins: [liveAnnotationsPlugin],
     data: {
-      labels: data.slice(-250).map(d => d.date),
-      datasets: [{ data: data.slice(-250).map(d => d.nav), borderColor: '#f59e0b', borderWidth: 2, pointRadius: 0, fill: true, backgroundColor: 'rgba(245, 158, 11, 0.05)' }]
+      labels: liveData.map(d => d.date),
+      datasets: [{ data: liveData.map(d => d.nav), borderColor: '#f59e0b', borderWidth: 2, pointRadius: 0, fill: true, backgroundColor: 'rgba(245, 158, 11, 0.05)' }]
     },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#1e293b' } } } }
+    options: { 
+      responsive: true, 
+      maintainAspectRatio: false, 
+      plugins: { legend: { display: false } }, 
+      layout: { padding: { top: 15, bottom: 15 } },
+      scales: { x: { display: false }, y: { grid: { color: '#1e293b' } } } 
+    }
   });
 }
 
@@ -266,7 +342,7 @@ function updateStats(nav) {
   document.getElementById('nwVal').textContent = `₹${Math.round(nw).toLocaleString()}`;
 }
 
-// PLUGIN FOR PC/NC AND TSL (Trailing Stop Loss)
+// PLUGIN FOR PC/NC AND TSL (Game Chart)
 const customAnnotationsPlugin = {
   id: 'customAnnotations',
   afterDatasetsDraw(chart) {
@@ -279,10 +355,8 @@ const customAnnotationsPlugin = {
     
     // --- 1. TSL Lines Logic ---
     let swingLows = [];
-    // 5-bar fractal swing low: lower than 2 bars before and 2 bars after
     for(let i = data.length - 3; i >= 2; i--) {
       if(data[i] < data[i-1] && data[i] < data[i-2] && data[i] <= data[i+1] && data[i] <= data[i+2]) {
-        // Prevent stacking lows too close together (min 4 days apart)
         if(swingLows.length === 0 || (swingLows[swingLows.length-1].idx - i) > 4) {
           swingLows.push({ idx: i, val: data[i] });
         }
@@ -302,7 +376,7 @@ const customAnnotationsPlugin = {
         const endX = meta.data[data.length - 1].x;
         
         ctx.beginPath();
-        ctx.strokeStyle = i === 0 ? '#ef4444' : '#f59e0b'; // Red for immediate TSL, Orange for previous TSL
+        ctx.strokeStyle = i === 0 ? '#ef4444' : '#f59e0b'; 
         ctx.fillStyle = ctx.strokeStyle;
         
         ctx.moveTo(startX, yPos);
@@ -316,7 +390,7 @@ const customAnnotationsPlugin = {
     // --- 2. PC/NC Consolidation Logic ---
     ctx.font = '8px "Space Mono"';
     ctx.textAlign = 'center';
-    ctx.setLineDash([]); // Reset line dash for text
+    ctx.setLineDash([]); 
     
     let lastLabelIdx = -10;
     for(let i = 5; i < data.length; i++) {
