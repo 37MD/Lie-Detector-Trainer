@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MF Lie Detector - Pro Mastery v3.8</title>
+<title>MF Lie Detector - Pro Mastery v3.10</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -26,7 +26,6 @@
   .nw-lbl { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); text-transform: uppercase; margin-bottom: 2px; }
   .nw-val { font-family: var(--mono); font-size: 1.2rem; font-weight: 400; color: var(--text); } 
 
-  /* Warning Banners (Game & Live) */
   #alertBanner, #liveAlertBanner { display: none; background: var(--red); color: white; text-align: center; padding: 6px; font-family: var(--mono); font-weight: bold; font-size: 0.75rem; text-transform: uppercase; animation: pulseAlert 1.5s infinite; border-bottom: 1px solid #7f1d1d;}
   @keyframes pulseAlert { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
 
@@ -58,12 +57,13 @@
   .btn-live { border-color: var(--accent2); color: var(--bg); background: var(--accent2); padding: 12px; font-weight: 700; border-radius: 6px; border: none; cursor: pointer; text-transform: uppercase;}
   .btn-log { background: var(--surface2); color: var(--text); border: 1px solid var(--border); padding: 4px 10px; font-size: 0.75rem; font-family: var(--mono); cursor: pointer; border-radius: 4px; }
 
-  /* Setup Screen */
   #setupScreen { position: fixed; inset: 0; background: var(--bg); z-index: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem; text-align: center; }
   .fund-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; width: 100%; max-width: 350px; margin-bottom: 0.5rem; }
   .fund-box { background: var(--surface2); border: 2px solid var(--border); color: var(--text); padding: 12px 2px; border-radius: 6px; font-family: var(--sans); font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
   .fund-box.active { border-color: var(--accent); background: rgba(16, 185, 129, 0.1); color: var(--accent); }
   .dropdown { background: var(--surface2); border: 1px solid var(--border); color: white; padding: 12px; width: 100%; max-width: 350px; margin-bottom: 1.5rem; border-radius: 6px; font-family: var(--sans); font-size: 0.85rem; }
+  
+  .cors-warning { display: none; background: rgba(245, 158, 11, 0.1); border: 1px solid var(--accent2); color: var(--accent2); font-size: 0.75rem; padding: 8px; border-radius: 6px; margin-bottom: 1rem; max-width: 350px; text-align: left; }
 
   .modal-overlay { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 600; flex-direction: column; }
   .modal-close { padding: 12px 15px; text-align: right; color: var(--red); font-weight: bold; font-family: var(--mono); cursor: pointer; border-bottom: 1px solid var(--border); background: var(--surface); display: flex; justify-content: space-between; align-items: center; }
@@ -89,9 +89,13 @@
 <div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.7rem; margin-top: 10px;" id="ovTxt">SYNCING...</div></div>
 
 <div id="setupScreen">
-  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v3.8</h1>
-  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1.5rem;">Live Alerts & Dynamic Funds</p>
+  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v3.10</h1>
+  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">NPS Integration & Live Alerts</p>
   
+  <div id="corsWarning" class="cors-warning">
+    ⚠️ <strong>NPS Selected:</strong> If data fails to load, ensure you have a "CORS Unblock" extension enabled on your browser to access the free NPS API.
+  </div>
+
   <div class="fund-grid" id="fundGrid">
     <div class="fund-box active" onclick="selectAMC('HDFC', this)">HDFC</div>
     <div class="fund-box" onclick="selectAMC('ICICI', this)">ICICI</div>
@@ -99,7 +103,7 @@
     <div class="fund-box" onclick="selectAMC('ABSL', this)">ABSL</div>
   </div>
 
-  <select id="fundSelect" class="dropdown">
+  <select id="fundSelect" class="dropdown" onchange="checkNPSSelection()">
     </select>
 
   <div style="display: flex; gap: 10px; width: 100%; max-width: 350px;">
@@ -140,7 +144,7 @@
 
 <div id="gameUI" style="display: none; height: 100vh; flex-direction: column;">
   <header class="app-header">
-    <div class="logo">LIE DETECTOR V3.8</div>
+    <div class="logo">LIE DETECTOR V3.10</div>
     <div style="display: flex; gap: 10px; align-items: center;">
       <div style="font-family: var(--mono); font-size: 0.7rem; color: var(--accent2);">WMA 20</div>
       <button class="btn-log" onclick="showLog()">TRADE LOG</button>
@@ -188,27 +192,38 @@
 </div>
 
 <script>
-// --- FUND DATABASE ---
+// --- MULTI-ASSET DATABASE (MF + NPS) ---
 const amcFunds = {
   'HDFC': [
-    { name: 'HDFC Flexi Cap - Direct Growth', code: '118989' },
-    { name: 'HDFC Balanced Advantage - Direct Growth', code: '118968' }
+    { name: '[MF] HDFC Flexi Cap - Growth', code: '118989' },
+    { name: '[MF] HDFC Balanced Advantage - Growth', code: '118968' },
+    { name: '[NPS] HDFC Scheme E - Tier I', code: 'SM008001' },
+    { name: '[NPS] HDFC Scheme C - Tier I', code: 'SM008002' },
+    { name: '[NPS] HDFC Scheme E - Tier II', code: 'SM008004' }
   ],
   'ICICI': [
-    { name: 'ICICI Flexicap - Direct Growth', code: '119062' },
-    { name: 'ICICI Balanced Advantage - Direct Growth', code: '120377' },
-    { name: 'ICICI Nifty200 Value 30 - Direct Growth', code: '152932' }
+    { name: '[MF] ICICI Flexicap - Growth', code: '119062' },
+    { name: '[MF] ICICI Balanced Advantage - Growth', code: '120377' },
+    { name: '[MF] ICICI Nifty200 Value 30 - Growth', code: '152932' },
+    { name: '[NPS] ICICI Scheme E - Tier I', code: 'SM007001' },
+    { name: '[NPS] ICICI Scheme C - Tier I', code: 'SM007002' },
+    { name: '[NPS] ICICI Scheme E - Tier II', code: 'SM007004' },
+    { name: '[NPS] ICICI Scheme C - Tier II', code: 'SM007005' }
   ],
   'KOTAK': [
-    { name: 'KOTAK Flexicap - Direct Growth', code: '103096' },
-    { name: 'KOTAK Balanced Advantage - Direct Growth', code: '144335' },
-    { name: 'KOTAK Nifty Commodities - Direct Growth', code: '153353' },
-    { name: 'KOTAK Gold Silver Passive FOF', code: '153921' }
+    { name: '[MF] KOTAK Flexicap - Growth', code: '103096' },
+    { name: '[MF] KOTAK Balanced Advantage - Growth', code: '144335' },
+    { name: '[MF] KOTAK Nifty Commodities - Growth', code: '153353' },
+    { name: '[MF] KOTAK Gold Silver Passive FOF', code: '153921' },
+    { name: '[NPS] KOTAK Scheme E - Tier I', code: 'SM005001' },
+    { name: '[NPS] KOTAK Scheme C - Tier I', code: 'SM005002' },
+    { name: '[NPS] KOTAK Scheme E - Tier II', code: 'SM005004' },
+    { name: '[NPS] KOTAK Scheme C - Tier II', code: 'SM005005' }
   ],
   'ABSL': [
-    { name: 'ABSL Flexi Cap - Direct Growth', code: '120517' },
-    { name: 'ABSL Balanced Advantage - Direct Growth', code: '131670' },
-    { name: 'ABSL Gold Fund - Direct Growth', code: '120546' }
+    { name: '[MF] ABSL Flexi Cap - Growth', code: '120517' },
+    { name: '[MF] ABSL Balanced Advantage - Growth', code: '131670' },
+    { name: '[MF] ABSL Gold Fund - Growth', code: '120546' }
   ]
 };
 
@@ -223,6 +238,17 @@ function selectAMC(amc, element) {
     opt.textContent = f.name;
     select.appendChild(opt);
   });
+  checkNPSSelection();
+}
+
+function checkNPSSelection() {
+  const code = document.getElementById('fundSelect').value;
+  const warning = document.getElementById('corsWarning');
+  if (code && code.startsWith('SM')) {
+    warning.style.display = 'block';
+  } else {
+    warning.style.display = 'none';
+  }
 }
 
 // Initialize Dropdown on Load
@@ -234,22 +260,33 @@ let cash = 100000, units = 0, principalInvested = 0;
 let tradeLog = []; 
 let prevRegime = null, prevNav = null;
 
+// --- DYNAMIC DATA ROUTER ---
 async function fetchFundData() {
   const code = document.getElementById('fundSelect').value;
   document.getElementById('ov').style.display = 'flex';
+  
+  const isNPS = code.startsWith('SM');
+  const url = isNPS ? `https://npsnav.in/api/historical/${code}` : `https://api.mfapi.in/mf/${code}`;
+
   try {
-    const res = await fetch(`https://api.mfapi.in/mf/${code}`);
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP Error');
     const data = await res.json();
     document.getElementById('ov').style.display = 'none';
+    
+    // Both APIs return an array of objects inside a 'data' key with 'nav' and 'date'
     return data.data.map(d => ({nav: parseFloat(d.nav), date: d.date})).reverse();
   } catch(e) {
-    alert("API temporarily down or invalid scheme code. Please try another fund.");
     document.getElementById('ov').style.display = 'none';
+    if(isNPS) {
+      alert("NPS Data fetch blocked. This is a browser CORS restriction. Please use a 'CORS Unblock' extension for npsnav.in.");
+    } else {
+      alert("MF API temporarily down. Please try another fund.");
+    }
     return [];
   }
 }
 
-// --- SHARED PLUGIN FOR BOTH CHARTS ---
 const universalAnnotationsPlugin = {
   id: 'universalAnnotations',
   afterDatasetsDraw(chart) {
@@ -334,29 +371,23 @@ const universalAnnotationsPlugin = {
   }
 };
 
-// --- LIVE CHART LOGIC WITH ALERTS ---
 function checkLiveAlerts(globalData) {
   if(globalData.length < 50) return;
-  
-  // Yesterday's Data
   const prevPrices = globalData.slice(0, -1).map(d => d.nav);
   const p_wRsi = calculateRSI(prevPrices.filter((_, i) => i % 5 === 0), 14);
   const prevReg = p_wRsi >= 50 ? 'A' : (p_wRsi >= 40 ? 'B' : 'C');
   const p_Nav = prevPrices[prevPrices.length - 1];
 
-  // Today's Data
   const currPrices = globalData.map(d => d.nav);
   const c_wRsi = calculateRSI(currPrices.filter((_, i) => i % 5 === 0), 14);
   const currReg = c_wRsi >= 50 ? 'A' : (c_wRsi >= 40 ? 'B' : 'C');
   const c_Nav = currPrices[currPrices.length - 1];
 
-  // Find TSL 1 (Using data up to yesterday)
   let tsl1 = null;
   for(let i = globalData.length - 3; i >= 2; i--) {
     if(globalData[i].nav < globalData[i-1].nav && globalData[i].nav < globalData[i-2].nav && 
        globalData[i].nav <= globalData[i+1].nav && globalData[i].nav <= globalData[i+2].nav) {
-      tsl1 = globalData[i].nav;
-      break;
+      tsl1 = globalData[i].nav; break;
     }
   }
 
@@ -385,7 +416,7 @@ async function initLive() {
   document.getElementById('setupScreen').style.display = 'none';
   document.getElementById('liveModal').style.display = 'flex';
   
-  checkLiveAlerts(globalLiveData); // Process flash alerts for today
+  checkLiveAlerts(globalLiveData); 
 
   const btns = document.getElementById('liveTfRow').children;
   for(let b of btns) b.classList.remove('active');
@@ -449,7 +480,6 @@ function showLog() {
 }
 function closeLog() { document.getElementById('logModal').style.display = 'none'; }
 
-// --- GAME LOGIC ---
 async function initGame() {
   document.getElementById('ovTxt').textContent = "SYNCING SIMULATION...";
   fullHistory = await fetchFundData();
