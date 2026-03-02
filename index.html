@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MF Lie Detector - Pro Mastery v2.1</title>
+<title>MF Lie Detector - Pro Mastery v3</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -16,139 +16,215 @@
     --mono: 'Space Mono', monospace; --sans: 'DM Sans', sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background-color: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; display: flex; flex-direction: column; }
+  body { background-color: var(--bg); color: var(--text); font-family: var(--sans); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-  /* Header */
-  .app-header { height: 60px; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 1rem; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-  .logo { font-family: var(--mono); font-weight: 700; font-size: 0.9rem; color: var(--accent); }
-  .stat-val { color: var(--accent); font-weight: 700; font-family: var(--mono); }
+  /* Top Setup & Header */
+  .app-header { display:flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .logo { font-family: var(--mono); font-weight: 700; font-size: 0.85rem; color: var(--accent); }
 
-  /* Responsive Main Layout */
-  .main-sim { flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; padding-bottom: 90px; }
-  @media (min-width: 900px) {
-    .main-sim { display: grid; grid-template-columns: 3fr 1fr; height: calc(100vh - 140px); overflow: hidden; }
-  }
+  /* Networth Box (Header above chart) */
+  .networth-header { display: flex; justify-content: space-around; background: var(--surface2); border-bottom: 1px solid var(--border); padding: 8px 5px; }
+  .nw-col { display: flex; flex-direction: column; align-items: center; }
+  .nw-lbl { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); text-transform: uppercase; margin-bottom: 2px; }
+  .nw-val { font-family: var(--mono); font-size: 1.2rem; font-weight: 700; color: var(--text); } /* Same size as Regime */
 
-  /* Left Panel: Chart */
-  .chart-container { background: var(--bg); padding: 1rem; display: flex; flex-direction: column; min-height: 380px; }
-  .chart-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
-  .chart-wrap { flex-grow: 1; position: relative; min-height: 280px; }
+  /* Main Layout */
+  .main-sim { flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; padding-bottom: 70px; }
+  
+  /* Chart (Shrunk by 20%) */
+  .chart-container { background: var(--bg); padding: 5px; height: 35vh; min-height: 220px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; }
+  .chart-header { display: flex; justify-content: space-between; padding: 0 5px; }
+  .label-sm { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); text-transform: uppercase; }
+  .chart-wrap { flex-grow: 1; position: relative; }
 
-  /* Right Panel: Side UI */
-  .side-panel { background: var(--surface); padding: 1.2rem; display: flex; flex-direction: column; gap: 12px; }
-  @media (min-width: 900px) { .side-panel { overflow-y: auto; height: 100%; } }
+  /* Indicators Row (Daily, Weekly, Regime) */
+  .indicator-row { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 6px 10px; border-bottom: 1px solid var(--border); }
+  .ind-box { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; border-right: 1px solid var(--border); }
+  .ind-box:last-child { border-right: none; }
+  .ind-val { font-family: var(--mono); font-size: 1.2rem; font-weight: 700; margin-top: 2px; padding: 2px 8px; border-radius: 4px; }
+  
+  /* Regime specific colors */
+  .reg-A { color: var(--accent); background: rgba(16, 185, 129, 0.1); border: 1px solid var(--accent); }
+  .reg-B { color: var(--accent2); background: rgba(245, 158, 11, 0.1); border: 1px solid var(--accent2); }
+  .reg-C { color: var(--red); background: rgba(239, 68, 68, 0.1); border: 1px solid var(--red); }
 
-  .regime-block { width: 100%; padding: 1.2rem; border-radius: 8px; text-align: center; font-family: var(--mono); font-weight: 700; font-size: 1.4rem; text-transform: uppercase; border: 2px solid transparent; }
-  .reg-A { background: rgba(16, 185, 129, 0.1); color: var(--accent); border-color: var(--accent); }
-  .reg-B { background: rgba(245, 158, 11, 0.1); color: var(--accent2); border-color: var(--accent2); }
-  .reg-C { background: rgba(239, 68, 68, 0.1); color: var(--red); border-color: var(--red); }
-
-  .audit-card { background: var(--surface2); padding: 1rem; border-radius: 8px; border: 1px solid var(--border); }
-  .label-sm { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; display: block; }
-  .rsi-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .rsi-box { text-align: center; }
-  .rsi-num { font-family: var(--mono); font-size: 1.8rem; font-weight: 700; }
-  .psy-logic { font-size: 0.85rem; color: var(--text); font-style: italic; line-height: 1.4; border-left: 2px solid var(--accent); padding-left: 10px; }
+  /* Psychology Box */
+  .psy-box { padding: 8px 12px; background: var(--surface); flex-grow: 1; }
+  .psy-logic { font-size: 0.8rem; color: var(--text); font-style: italic; border-left: 2px solid var(--accent); padding-left: 8px; margin-top: 4px; line-height: 1.3; }
 
   /* Action Bar */
-  .action-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 80px; background: var(--surface); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0 10px; z-index: 200; }
-  .btn { flex: 1; font-family: var(--mono); font-weight: 700; padding: 12px 0; border-radius: 6px; cursor: pointer; border: 1px solid transparent; text-transform: uppercase; font-size: 0.75rem; max-width: 130px; }
+  .action-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--surface2); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 10px; z-index: 200; gap: 6px; }
+  .btn { flex: 1; font-family: var(--mono); font-weight: 700; padding: 10px 0; border-radius: 4px; cursor: pointer; border: 1px solid transparent; text-transform: uppercase; font-size: 0.75rem; }
   .btn-buy { border-color: var(--accent); color: var(--accent); background: transparent; }
   .btn-sell { border-color: var(--red); color: var(--red); background: transparent; }
   .btn-hold { border-color: var(--muted); color: var(--muted); background: transparent; }
+  .btn-live { border-color: var(--accent2); color: var(--bg); background: var(--accent2); padding: 8px 15px; }
 
+  /* Setup Screen & Modals */
   #setupScreen { position: fixed; inset: 0; background: var(--bg); z-index: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center; }
-  .dropdown { background: var(--surface); border: 1px solid var(--border); color: white; padding: 1rem; width: 100%; max-width: 350px; margin-bottom: 1.5rem; border-radius: 8px; font-family: var(--sans); }
-  #ov { display: none; position: fixed; inset: 0; background: rgba(8,11,18,0.98); z-index: 1000; align-items: center; justify-content: center; flex-direction: column; }
-  .spin { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  .dropdown { background: var(--surface2); border: 1px solid var(--border); color: white; padding: 12px; width: 100%; max-width: 320px; margin-bottom: 1rem; border-radius: 6px; font-family: var(--sans); }
+  
+  #liveModal { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 600; flex-direction: column; }
+  .modal-close { padding: 15px; text-align: right; color: var(--red); font-weight: bold; font-family: var(--mono); cursor: pointer; }
+
+  #ov { display: none; position: fixed; inset: 0; background: rgba(8,11,18,0.95); z-index: 1000; align-items: center; justify-content: center; flex-direction: column; }
+  .spin { width: 35px; height: 35px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
 
-<div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.8rem; margin-top: 15px;">FIXING LOGIC...</div></div>
-
-<header class="app-header">
-  <div class="logo">LIE DETECTOR PRO</div>
-  <div class="game-stats" id="gameStats" style="visibility: hidden;">
-    <div style="font-size: 0.7rem; color: var(--muted)">NW: <span id="nwVal" class="stat-val">₹100k</span></div>
-  </div>
-</header>
+<div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.7rem; margin-top: 10px;" id="ovTxt">SYNCING...</div></div>
 
 <div id="setupScreen">
-  <h1 style="margin-bottom: 1rem; font-size: 2rem;">Strategy Sim v2.1</h1>
+  <h1 style="margin-bottom: 0.5rem; font-size: 1.8rem;">Mastery Sim v3</h1>
+  <p style="color:var(--muted); font-size: 0.8rem; margin-bottom: 1.5rem;">Wilder's RSI Smoothing & PC/NC Enabled</p>
   <select id="fundSelect" class="dropdown">
     <option value="118989">HDFC Flexi Cap - Direct Growth</option>
     <option value="119062">ICICI Pru Flexicap - Direct Growth</option>
     <option value="120517">ABSL Flexi Cap - Direct Growth</option>
     <option value="103096">Kotak Flexicap - Direct Growth</option>
   </select>
-  <button class="btn btn-buy" style="max-width: 220px;" onclick="initGame()">Start Mastery Game</button>
+  <div style="display: flex; gap: 10px; width: 100%; max-width: 320px;">
+    <button class="btn btn-buy" style="flex: 2;" onclick="initGame()">Start Sim</button>
+    <button class="btn btn-live" style="flex: 1;" onclick="showLive()">Live</button>
+  </div>
 </div>
 
-<main class="main-sim" id="gameUI" style="display: none;">
-  <section class="chart-container">
-    <div class="chart-header">
-      <div><span class="label-sm" id="simDay">Day 0</span><h3 id="simNav" style="font-size: 1.2rem;">--</h3></div>
-      <div style="text-align: right;"><span class="label-sm">WMA 20</span><div style="font-family: var(--mono); font-size: 0.7rem; color: var(--accent2);">Active</div></div>
-    </div>
-    <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
-  </section>
+<div id="liveModal">
+  <div class="modal-close" onclick="closeLive()">[ X ] CLOSE LIVE CHART</div>
+  <div style="flex-grow: 1; position: relative; padding: 10px;"><canvas id="liveChartCanvas"></canvas></div>
+</div>
 
-  <aside class="side-panel">
-    <div id="regimeBlock" class="regime-block">REGIME --</div>
-    <div class="audit-card">
-      <div class="rsi-row">
-        <div class="rsi-box"><span class="label-sm">Weekly RSI</span><div id="wRsi" class="rsi-num">--</div></div>
-        <div class="rsi-box"><span class="label-sm">Daily RSI</span><div id="dRsi" class="rsi-num">--</div></div>
+<div id="gameUI" style="display: none; height: 100vh; flex-direction: column;">
+  <header class="app-header">
+    <div class="logo">MF LIE DETECTOR V3</div>
+    <div style="font-family: var(--mono); font-size: 0.7rem; color: var(--accent2);">WMA 20</div>
+  </header>
+
+  <div class="networth-header">
+    <div class="nw-col"><span class="nw-lbl">Net Worth</span><span class="nw-val" id="nwVal" style="color: var(--accent)">₹100,000</span></div>
+    <div class="nw-col"><span class="nw-lbl">In Trade</span><span class="nw-val" id="portVal">₹0</span></div>
+    <div class="nw-col"><span class="nw-lbl">Cash in Hand</span><span class="nw-val" id="cashVal">₹100,000</span></div>
+  </div>
+
+  <main class="main-sim">
+    <div class="chart-container">
+      <div class="chart-header">
+        <span class="label-sm" id="simDay">Day 0</span>
+        <span style="font-family: var(--mono); font-size: 0.9rem; font-weight: 700;" id="simNav">NAV: --</span>
+      </div>
+      <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+    </div>
+
+    <div class="indicator-row">
+      <div class="ind-box">
+        <span class="label-sm">Daily RSI</span>
+        <div id="dRsi" class="ind-val">--</div>
+      </div>
+      <div class="ind-box">
+        <span class="label-sm">Weekly RSI</span>
+        <div id="wRsi" class="ind-val">--</div>
+      </div>
+      <div class="ind-box">
+        <span class="label-sm">Regime</span>
+        <div id="regimeBlock" class="ind-val">--</div>
       </div>
     </div>
-    <div class="audit-card" style="margin-bottom: 20px;">
-      <span class="label-sm">Psychology Logic</span>
-      <div id="psyMsg" class="psy-logic">Analyzing institutional flow...</div>
-    </div>
-  </aside>
-</main>
 
-<footer class="action-bar" id="gameControls" style="display: none;">
-  <button class="btn btn-buy" onclick="trade('BUY')">Buy 25%</button>
-  <button class="btn btn-hold" onclick="nextDay()">Hold / Next</button>
-  <button class="btn btn-sell" onclick="trade('SELL')">Sell All</button>
-</footer>
+    <div class="psy-box">
+      <span class="label-sm">Psychology Logic</span>
+      <div id="psyMsg" class="psy-logic">Analyzing institutional flow and price consolidation...</div>
+    </div>
+  </main>
+
+  <footer class="action-bar">
+    <button class="btn btn-buy" onclick="trade('BUY')">Buy 25%</button>
+    <button class="btn btn-hold" onclick="nextDay()">Hold</button>
+    <button class="btn btn-sell" onclick="trade('SELL')">Sell All</button>
+  </footer>
+</div>
 
 <script>
-let fullHistory = [], currentIdx = 0, simStartIdx = 0, chart = null;
+let fullHistory = [], currentIdx = 0, simStartIdx = 0, chart = null, liveChart = null;
 let cash = 100000, units = 0;
 
-async function initGame() {
+async function fetchFundData() {
   const code = document.getElementById('fundSelect').value;
   document.getElementById('ov').style.display = 'flex';
   try {
     const res = await fetch(`https://api.mfapi.in/mf/${code}`);
     const data = await res.json();
-    fullHistory = data.data.map(d => ({nav: parseFloat(d.nav), date: d.date})).reverse();
-    simStartIdx = Math.floor(Math.random() * (fullHistory.length - 450)) + 150;
-    currentIdx = simStartIdx;
-    document.getElementById('setupScreen').style.display = 'none';
-    document.getElementById('gameUI').style.display = 'flex';
-    document.getElementById('gameStats').style.visibility = 'visible';
-    document.getElementById('gameControls').style.display = 'flex';
-    updateDisplay();
-  } catch(e) { alert("Data fetch error."); }
-  document.getElementById('ov').style.display = 'none';
+    document.getElementById('ov').style.display = 'none';
+    return data.data.map(d => ({nav: parseFloat(d.nav), date: d.date})).reverse();
+  } catch(e) {
+    alert("Data fetch error.");
+    document.getElementById('ov').style.display = 'none';
+    return [];
+  }
 }
 
+async function showLive() {
+  document.getElementById('ovTxt').textContent = "FETCHING LIVE...";
+  const data = await fetchFundData();
+  if(!data.length) return;
+  document.getElementById('setupScreen').style.display = 'none';
+  document.getElementById('liveModal').style.display = 'flex';
+  
+  const ctx = document.getElementById('liveChartCanvas').getContext('2d');
+  if(liveChart) liveChart.destroy();
+  liveChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.slice(-250).map(d => d.date),
+      datasets: [{ data: data.slice(-250).map(d => d.nav), borderColor: '#f59e0b', borderWidth: 2, pointRadius: 0, fill: true, backgroundColor: 'rgba(245, 158, 11, 0.05)' }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#1e293b' } } } }
+  });
+}
+
+function closeLive() {
+  document.getElementById('liveModal').style.display = 'none';
+  document.getElementById('setupScreen').style.display = 'flex';
+}
+
+async function initGame() {
+  document.getElementById('ovTxt').textContent = "SYNCING SIMULATION...";
+  fullHistory = await fetchFundData();
+  if(!fullHistory.length) return;
+  simStartIdx = Math.floor(Math.random() * (fullHistory.length - 450)) + 200;
+  currentIdx = simStartIdx;
+  document.getElementById('setupScreen').style.display = 'none';
+  document.getElementById('gameUI').style.display = 'flex';
+  updateDisplay();
+}
+
+// WILDER'S SMOOTHING RSI ALGORITHM
 function calculateRSI(prices, period = 14) {
   if (prices.length <= period) return 50;
   let gains = 0, losses = 0;
-  // Calculate Initial RSI for the specific window
-  const window = prices.slice(-period - 1);
-  for (let i = 1; i < window.length; i++) {
-    const diff = window[i] - window[i - 1];
+  
+  // Initial simple average
+  for (let i = 1; i <= period; i++) {
+    let diff = prices[i] - prices[i - 1];
     diff > 0 ? gains += diff : losses -= diff;
   }
-  if (losses === 0) return 100;
-  const rs = (gains / period) / (losses / period);
+  
+  let avgGain = gains / period;
+  let avgLoss = losses / period;
+
+  // Wilder's Smoothing for the rest of the array
+  for (let i = period + 1; i < prices.length; i++) {
+    let diff = prices[i] - prices[i - 1];
+    let currentGain = diff > 0 ? diff : 0;
+    let currentLoss = diff < 0 ? -diff : 0;
+    
+    avgGain = ((avgGain * (period - 1)) + currentGain) / period;
+    avgLoss = ((avgLoss * (period - 1)) + currentLoss) / period;
+  }
+  
+  if (avgLoss === 0) return 100;
+  let rs = avgGain / avgLoss;
   return 100 - (100 / (1 + rs));
 }
 
@@ -162,15 +238,15 @@ function calculateWMA(prices, period = 20) {
 function updateDisplay() {
   const visible = fullHistory.slice(0, currentIdx + 1);
   const currentNav = visible[visible.length - 1].nav;
-  const dailyPrices = visible.map(v => v.nav);
+  const prices = visible.map(v => v.nav);
   
-  // RSI Logic Fix: Calculate from current window
-  const dRsi = calculateRSI(dailyPrices, 14);
-  const weeklyPrices = dailyPrices.filter((_, i) => i % 5 === 0);
-  const wRsi = calculateRSI(weeklyPrices, 14);
+  const dRsi = calculateRSI(prices, 14);
+  const wPrices = prices.filter((_, i) => i % 5 === 0);
+  const wRsi = calculateRSI(wPrices, 14);
 
-  document.getElementById('simDay').textContent = `Simulation Day ${currentIdx - simStartIdx}`;
+  document.getElementById('simDay').textContent = `Day ${currentIdx - simStartIdx}`;
   document.getElementById('simNav').textContent = `NAV: ₹${currentNav.toFixed(2)}`;
+  
   document.getElementById('dRsi').textContent = Math.round(dRsi);
   document.getElementById('wRsi').textContent = Math.round(wRsi);
   
@@ -179,7 +255,7 @@ function updateDisplay() {
   document.getElementById('wRsi').style.color = color(wRsi);
 
   const block = document.getElementById('regimeBlock');
-  block.className = 'regime-block ' + (wRsi >= 50 ? 'reg-A' : (wRsi >= 40 ? 'reg-B' : 'reg-C'));
+  block.className = 'ind-val ' + (wRsi >= 50 ? 'reg-A' : (wRsi >= 40 ? 'reg-B' : 'reg-C'));
   block.textContent = wRsi >= 50 ? "Regime A" : (wRsi >= 40 ? "Regime 2" : "Regime 3");
 
   let msg = wRsi >= 50 ? (dRsi <= 50 ? "Regime A Pullback. Optimal Entry." : "Regime A: Structural Bull.") : 
@@ -192,17 +268,59 @@ function updateDisplay() {
 
 function trade(type) {
   const nav = fullHistory[currentIdx].nav;
-  if(type === 'BUY') { const amt = cash * 0.25; units += amt / nav; cash -= amt; }
-  else { cash += units * nav; units = 0; }
+  if(type === 'BUY') { 
+    const amt = cash * 0.25; 
+    if(amt > 10) { units += amt / nav; cash -= amt; }
+  } else { cash += units * nav; units = 0; }
   nextDay();
 }
 
 function nextDay() { if(currentIdx < fullHistory.length - 1) { currentIdx++; updateDisplay(); } }
 
 function updateStats(nav) {
-  const nw = cash + (units * nav);
-  document.getElementById('nwVal').textContent = `₹${Math.round(nw/1000)}k`;
+  const pVal = units * nav;
+  const nw = cash + pVal;
+  document.getElementById('cashVal').textContent = `₹${Math.round(cash).toLocaleString()}`;
+  document.getElementById('portVal').textContent = `₹${Math.round(pVal).toLocaleString()}`;
+  document.getElementById('nwVal').textContent = `₹${Math.round(nw).toLocaleString()}`;
 }
+
+// CUSTOM PLUGIN FOR PC/NC CONSOLIDATION LABELS
+const pcNcPlugin = {
+  id: 'pcncLabels',
+  afterDatasetsDraw(chart) {
+    const ctx = chart.ctx;
+    const meta = chart.getDatasetMeta(0);
+    const data = chart.data.datasets[0].data;
+    const wma = chart.data.datasets[1].data;
+    
+    ctx.font = '8px "Space Mono"';
+    ctx.textAlign = 'center';
+    
+    let lastLabelIdx = -10;
+    for(let i = 5; i < data.length; i++) {
+      if(i - lastLabelIdx < 8) continue; // Prevent label overlap
+      
+      let window = data.slice(i-5, i+1);
+      let max = Math.max(...window);
+      let min = Math.min(...window);
+      
+      // If price ranges less than 1.5% over 5 days, it's a consolidation
+      if((max - min) / min < 0.015 && wma[i] != null) {
+        let x = meta.data[i-2].x; // Draw in the middle of consolidation
+        if(data[i] > wma[i]) {
+          ctx.fillStyle = '#10b981';
+          ctx.fillText('PC', x, chart.scales.y.getPixelForValue(min) + 12);
+          lastLabelIdx = i;
+        } else if(data[i] < wma[i]) {
+          ctx.fillStyle = '#ef4444';
+          ctx.fillText('NC', x, chart.scales.y.getPixelForValue(max) - 5);
+          lastLabelIdx = i;
+        }
+      }
+    }
+  }
+};
 
 function renderChart(data) {
   const ctx = document.getElementById('mainChart').getContext('2d');
@@ -214,14 +332,19 @@ function renderChart(data) {
   });
   chart = new Chart(ctx, {
     type: 'line',
+    plugins: [pcNcPlugin],
     data: {
       labels: data.map((_, i) => i),
       datasets: [
-        { data: data.map(d => d.nav), borderColor: '#10b981', borderWidth: 2, pointRadius: 0, fill: true, backgroundColor: 'rgba(16, 185, 129, 0.05)' },
-        { data: wmaData, borderColor: '#f59e0b', borderWidth: 1.5, borderDash: [5, 5], pointRadius: 0, fill: false }
+        { data: data.map(d => d.nav), borderColor: '#10b981', borderWidth: 2, pointRadius: 0, fill: true, backgroundColor: 'rgba(16, 185, 129, 0.05)', tension: 0.1 },
+        { data: wmaData, borderColor: '#f59e0b', borderWidth: 1.5, borderDash: [4, 4], pointRadius: 0, fill: false }
       ]
     },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#1e293b' }, ticks: { display: false } } } }
+    options: { 
+      responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, 
+      layout: { padding: { top: 15, bottom: 15 } }, // Extra padding so PC/NC labels don't cut off
+      scales: { x: { display: false }, y: { grid: { color: '#1e293b' }, ticks: { display: false } } } 
+    }
   });
 }
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
