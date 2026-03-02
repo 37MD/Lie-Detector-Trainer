@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MF Lie Detector - Pro Mastery v3.7</title>
+<title>MF Lie Detector - Pro Mastery v3.8</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -18,30 +18,25 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background-color: var(--bg); color: var(--text); font-family: var(--sans); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-  /* Top Setup & Header */
   .app-header { display:flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--surface); border-bottom: 1px solid var(--border); }
   .logo { font-family: var(--mono); font-weight: 700; font-size: 0.85rem; color: var(--accent); }
 
-  /* Networth Box */
   .networth-header { display: flex; justify-content: space-around; background: var(--surface2); border-bottom: 1px solid var(--border); padding: 8px 5px; }
   .nw-col { display: flex; flex-direction: column; align-items: center; }
   .nw-lbl { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); text-transform: uppercase; margin-bottom: 2px; }
   .nw-val { font-family: var(--mono); font-size: 1.2rem; font-weight: 400; color: var(--text); } 
 
-  /* Warning Banner */
-  #alertBanner { display: none; background: var(--red); color: white; text-align: center; padding: 6px; font-family: var(--mono); font-weight: bold; font-size: 0.75rem; text-transform: uppercase; animation: pulseAlert 1.5s infinite; }
+  /* Warning Banners (Game & Live) */
+  #alertBanner, #liveAlertBanner { display: none; background: var(--red); color: white; text-align: center; padding: 6px; font-family: var(--mono); font-weight: bold; font-size: 0.75rem; text-transform: uppercase; animation: pulseAlert 1.5s infinite; border-bottom: 1px solid #7f1d1d;}
   @keyframes pulseAlert { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
 
-  /* Main Layout */
   .main-sim { flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; padding-bottom: 120px; }
   
-  /* Chart */
   .chart-container { background: var(--bg); padding: 5px; height: 32vh; min-height: 200px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; }
   .chart-header { display: flex; justify-content: space-between; padding: 0 5px; }
   .label-sm { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); text-transform: uppercase; }
   .chart-wrap { flex-grow: 1; position: relative; }
 
-  /* Indicators Row */
   .indicator-row { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 6px 10px; border-bottom: 1px solid var(--border); }
   .ind-box { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; border-right: 1px solid var(--border); }
   .ind-box:last-child { border-right: none; }
@@ -51,11 +46,9 @@
   .reg-B { color: var(--accent2); background: rgba(245, 158, 11, 0.1); border: 1px solid var(--accent2); }
   .reg-C { color: var(--red); background: rgba(239, 68, 68, 0.1); border: 1px solid var(--red); }
 
-  /* Psychology Box */
   .psy-box { padding: 8px 12px; background: var(--surface); flex-grow: 1; overflow-y: auto; }
   .psy-logic { font-size: 0.85rem; color: var(--text); font-style: italic; border-left: 2px solid var(--accent); padding-left: 10px; margin-top: 6px; }
 
-  /* 3x2 Action Bar Grid */
   .action-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--surface2); border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; padding: 8px; z-index: 200; }
   .btn { font-family: var(--mono); font-weight: 400; font-size: 0.85rem; padding: 10px 2px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; text-transform: uppercase; text-align: center; }
   .btn-buy { border-color: var(--accent); color: var(--accent); background: transparent; }
@@ -65,12 +58,12 @@
   .btn-live { border-color: var(--accent2); color: var(--bg); background: var(--accent2); padding: 12px; font-weight: 700; border-radius: 6px; border: none; cursor: pointer; text-transform: uppercase;}
   .btn-log { background: var(--surface2); color: var(--text); border: 1px solid var(--border); padding: 4px 10px; font-size: 0.75rem; font-family: var(--mono); cursor: pointer; border-radius: 4px; }
 
-  /* Setup Screen & Modals */
+  /* Setup Screen */
   #setupScreen { position: fixed; inset: 0; background: var(--bg); z-index: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem; text-align: center; }
-  
-  .fund-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 320px; margin-bottom: 1.5rem; }
-  .fund-box { background: var(--surface2); border: 2px solid var(--border); color: var(--text); padding: 15px 5px; border-radius: 6px; font-family: var(--sans); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
+  .fund-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; width: 100%; max-width: 350px; margin-bottom: 0.5rem; }
+  .fund-box { background: var(--surface2); border: 2px solid var(--border); color: var(--text); padding: 12px 2px; border-radius: 6px; font-family: var(--sans); font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
   .fund-box.active { border-color: var(--accent); background: rgba(16, 185, 129, 0.1); color: var(--accent); }
+  .dropdown { background: var(--surface2); border: 1px solid var(--border); color: white; padding: 12px; width: 100%; max-width: 350px; margin-bottom: 1.5rem; border-radius: 6px; font-family: var(--sans); font-size: 0.85rem; }
 
   .modal-overlay { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 600; flex-direction: column; }
   .modal-close { padding: 12px 15px; text-align: right; color: var(--red); font-weight: bold; font-family: var(--mono); cursor: pointer; border-bottom: 1px solid var(--border); background: var(--surface); display: flex; justify-content: space-between; align-items: center; }
@@ -96,19 +89,22 @@
 <div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.7rem; margin-top: 10px;" id="ovTxt">SYNCING...</div></div>
 
 <div id="setupScreen">
-  <h1 style="margin-bottom: 0.5rem; font-size: 1.8rem;">Mastery Sim v3.7</h1>
-  <p style="color:var(--muted); font-size: 0.8rem; margin-bottom: 1.5rem;">Alert Engine & Tactical Exits</p>
+  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v3.8</h1>
+  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1.5rem;">Live Alerts & Dynamic Funds</p>
   
   <div class="fund-grid" id="fundGrid">
-    <div class="fund-box active" onclick="selectFund('118989', this)">HDFC<br>Flexicap</div>
-    <div class="fund-box" onclick="selectFund('119062', this)">ICICI<br>Flexicap</div>
-    <div class="fund-box" onclick="selectFund('120517', this)">ABSL<br>Flexicap</div>
-    <div class="fund-box" onclick="selectFund('103096', this)">KOTAK<br>Flexicap</div>
+    <div class="fund-box active" onclick="selectAMC('HDFC', this)">HDFC</div>
+    <div class="fund-box" onclick="selectAMC('ICICI', this)">ICICI</div>
+    <div class="fund-box" onclick="selectAMC('KOTAK', this)">KOTAK</div>
+    <div class="fund-box" onclick="selectAMC('ABSL', this)">ABSL</div>
   </div>
 
-  <div style="display: flex; gap: 10px; width: 100%; max-width: 320px;">
+  <select id="fundSelect" class="dropdown">
+    </select>
+
+  <div style="display: flex; gap: 10px; width: 100%; max-width: 350px;">
     <button class="btn btn-buy" style="flex: 2; font-weight: 700; border: 1px solid var(--accent);" onclick="initGame()">Start Sim</button>
-    <button class="btn btn-live" style="flex: 1;" onclick="initLive()">Live</button>
+    <button class="btn btn-live" style="flex: 1;" onclick="initLive()">Live Chart</button>
   </div>
 </div>
 
@@ -117,6 +113,7 @@
     <span style="color: var(--accent2); font-size: 0.8rem;">LIVE ANALYSIS</span>
     <span onclick="closeLive()">[ X ] CLOSE</span>
   </div>
+  <div id="liveAlertBanner">⚠️ LIVE ALERT PLACEHOLDER</div>
   <div class="tf-row" id="liveTfRow">
     <button class="tf-btn" onclick="updateLiveChart(5, this)">1W</button>
     <button class="tf-btn" onclick="updateLiveChart(10, this)">2W</button>
@@ -143,7 +140,7 @@
 
 <div id="gameUI" style="display: none; height: 100vh; flex-direction: column;">
   <header class="app-header">
-    <div class="logo">LIE DETECTOR V3.7</div>
+    <div class="logo">LIE DETECTOR V3.8</div>
     <div style="display: flex; gap: 10px; align-items: center;">
       <div style="font-family: var(--mono); font-size: 0.7rem; color: var(--accent2);">WMA 20</div>
       <button class="btn-log" onclick="showLog()">TRADE LOG</button>
@@ -191,36 +188,68 @@
 </div>
 
 <script>
+// --- FUND DATABASE ---
+const amcFunds = {
+  'HDFC': [
+    { name: 'HDFC Flexi Cap - Direct Growth', code: '118989' },
+    { name: 'HDFC Balanced Advantage - Direct Growth', code: '118968' }
+  ],
+  'ICICI': [
+    { name: 'ICICI Flexicap - Direct Growth', code: '119062' },
+    { name: 'ICICI Balanced Advantage - Direct Growth', code: '120377' },
+    { name: 'ICICI Nifty200 Value 30 - Direct Growth', code: '152932' }
+  ],
+  'KOTAK': [
+    { name: 'KOTAK Flexicap - Direct Growth', code: '103096' },
+    { name: 'KOTAK Balanced Advantage - Direct Growth', code: '144335' },
+    { name: 'KOTAK Nifty Commodities - Direct Growth', code: '153353' },
+    { name: 'KOTAK Gold Silver Passive FOF', code: '153921' }
+  ],
+  'ABSL': [
+    { name: 'ABSL Flexi Cap - Direct Growth', code: '120517' },
+    { name: 'ABSL Balanced Advantage - Direct Growth', code: '131670' },
+    { name: 'ABSL Gold Fund - Direct Growth', code: '120546' }
+  ]
+};
+
+function selectAMC(amc, element) {
+  document.querySelectorAll('#fundGrid .fund-box').forEach(box => box.classList.remove('active'));
+  element.classList.add('active');
+  const select = document.getElementById('fundSelect');
+  select.innerHTML = '';
+  amcFunds[amc].forEach(f => {
+    let opt = document.createElement('option');
+    opt.value = f.code;
+    opt.textContent = f.name;
+    select.appendChild(opt);
+  });
+}
+
+// Initialize Dropdown on Load
+window.onload = () => selectAMC('HDFC', document.querySelector('.fund-box.active'));
+
 let fullHistory = [], globalLiveData = [];
 let currentIdx = 0, simStartIdx = 0, chart = null, liveChart = null;
 let cash = 100000, units = 0, principalInvested = 0; 
 let tradeLog = []; 
-let currentFundCode = '118989';
-
-// Alert Tracking Variables
-let prevRegime = null;
-let prevNav = null;
-
-function selectFund(code, element) {
-  currentFundCode = code;
-  document.querySelectorAll('.fund-box').forEach(box => box.classList.remove('active'));
-  element.classList.add('active');
-}
+let prevRegime = null, prevNav = null;
 
 async function fetchFundData() {
+  const code = document.getElementById('fundSelect').value;
   document.getElementById('ov').style.display = 'flex';
   try {
-    const res = await fetch(`https://api.mfapi.in/mf/${currentFundCode}`);
+    const res = await fetch(`https://api.mfapi.in/mf/${code}`);
     const data = await res.json();
     document.getElementById('ov').style.display = 'none';
     return data.data.map(d => ({nav: parseFloat(d.nav), date: d.date})).reverse();
   } catch(e) {
-    alert("Data fetch error. API might be temporarily down for this fund.");
+    alert("API temporarily down or invalid scheme code. Please try another fund.");
     document.getElementById('ov').style.display = 'none';
     return [];
   }
 }
 
+// --- SHARED PLUGIN FOR BOTH CHARTS ---
 const universalAnnotationsPlugin = {
   id: 'universalAnnotations',
   afterDatasetsDraw(chart) {
@@ -305,6 +334,50 @@ const universalAnnotationsPlugin = {
   }
 };
 
+// --- LIVE CHART LOGIC WITH ALERTS ---
+function checkLiveAlerts(globalData) {
+  if(globalData.length < 50) return;
+  
+  // Yesterday's Data
+  const prevPrices = globalData.slice(0, -1).map(d => d.nav);
+  const p_wRsi = calculateRSI(prevPrices.filter((_, i) => i % 5 === 0), 14);
+  const prevReg = p_wRsi >= 50 ? 'A' : (p_wRsi >= 40 ? 'B' : 'C');
+  const p_Nav = prevPrices[prevPrices.length - 1];
+
+  // Today's Data
+  const currPrices = globalData.map(d => d.nav);
+  const c_wRsi = calculateRSI(currPrices.filter((_, i) => i % 5 === 0), 14);
+  const currReg = c_wRsi >= 50 ? 'A' : (c_wRsi >= 40 ? 'B' : 'C');
+  const c_Nav = currPrices[currPrices.length - 1];
+
+  // Find TSL 1 (Using data up to yesterday)
+  let tsl1 = null;
+  for(let i = globalData.length - 3; i >= 2; i--) {
+    if(globalData[i].nav < globalData[i-1].nav && globalData[i].nav < globalData[i-2].nav && 
+       globalData[i].nav <= globalData[i+1].nav && globalData[i].nav <= globalData[i+2].nav) {
+      tsl1 = globalData[i].nav;
+      break;
+    }
+  }
+
+  let alertMsg = "";
+  if ((prevReg === 'A' && (currReg === 'B' || currReg === 'C')) || (prevReg === 'B' && currReg === 'C')) {
+    alertMsg = `⚠️ REGIME DOWNGRADE: ${prevReg} ➔ ${currReg} `;
+  }
+  if (tsl1 && p_Nav >= tsl1 && c_Nav < tsl1) {
+    if(alertMsg !== "") alertMsg += " | ";
+    alertMsg += `🚨 TSL BREAKDOWN (₹${tsl1.toFixed(2)})`;
+  }
+
+  const liveBanner = document.getElementById('liveAlertBanner');
+  if (alertMsg !== "") {
+    liveBanner.textContent = "TODAY: " + alertMsg;
+    liveBanner.style.display = 'block';
+  } else {
+    liveBanner.style.display = 'none';
+  }
+}
+
 async function initLive() {
   document.getElementById('ovTxt').textContent = "FETCHING LIVE...";
   globalLiveData = await fetchFundData();
@@ -312,6 +385,8 @@ async function initLive() {
   document.getElementById('setupScreen').style.display = 'none';
   document.getElementById('liveModal').style.display = 'flex';
   
+  checkLiveAlerts(globalLiveData); // Process flash alerts for today
+
   const btns = document.getElementById('liveTfRow').children;
   for(let b of btns) b.classList.remove('active');
   btns[4].classList.add('active'); 
@@ -374,6 +449,7 @@ function showLog() {
 }
 function closeLog() { document.getElementById('logModal').style.display = 'none'; }
 
+// --- GAME LOGIC ---
 async function initGame() {
   document.getElementById('ovTxt').textContent = "SYNCING SIMULATION...";
   fullHistory = await fetchFundData();
@@ -381,12 +457,8 @@ async function initGame() {
   simStartIdx = Math.floor(Math.random() * (fullHistory.length - 450)) + 200;
   currentIdx = simStartIdx;
   
-  tradeLog = []; 
-  cash = 100000;
-  units = 0;
-  principalInvested = 0; 
-  prevRegime = null;
-  prevNav = null;
+  tradeLog = []; cash = 100000; units = 0; principalInvested = 0; 
+  prevRegime = null; prevNav = null;
 
   document.getElementById('alertBanner').style.display = 'none';
   document.getElementById('setupScreen').style.display = 'none';
@@ -423,39 +495,26 @@ function calculateWMA(prices, period = 20) {
 function checkAlerts(currentRegime, currentNav, chartData) {
   const banner = document.getElementById('alertBanner');
   let alertMsg = "";
-
-  // Find current TSL 1
   let tsl1 = null;
   for(let i = chartData.length - 3; i >= 2; i--) {
     if(chartData[i].nav < chartData[i-1].nav && chartData[i].nav < chartData[i-2].nav && chartData[i].nav <= chartData[i+1].nav && chartData[i].nav <= chartData[i+2].nav) {
-      tsl1 = chartData[i].nav;
-      break;
+      tsl1 = chartData[i].nav; break;
     }
   }
 
-  // Check Regime Downgrade
   if (prevRegime && currentRegime !== prevRegime) {
-    if ((prevRegime === 'A' && (currentRegime === 'B' || currentRegime === 'C')) || 
-        (prevRegime === 'B' && currentRegime === 'C')) {
+    if ((prevRegime === 'A' && (currentRegime === 'B' || currentRegime === 'C')) || (prevRegime === 'B' && currentRegime === 'C')) {
       alertMsg = `⚠️ REGIME DOWNGRADE: ${prevRegime} ➔ ${currentRegime} `;
     }
   }
-
-  // Check TSL Breakdown (Price dropped below TSL today)
   if (tsl1 && prevNav && prevNav >= tsl1 && currentNav < tsl1) {
     if(alertMsg !== "") alertMsg += " | ";
     alertMsg += `🚨 TSL BREAKDOWN (₹${tsl1.toFixed(2)})`;
   }
 
-  if (alertMsg !== "") {
-    banner.textContent = alertMsg;
-    banner.style.display = 'block';
-  } else {
-    banner.style.display = 'none'; // Clear banner if no new alert today
-  }
-
-  prevRegime = currentRegime;
-  prevNav = currentNav;
+  if (alertMsg !== "") { banner.textContent = alertMsg; banner.style.display = 'block'; } 
+  else { banner.style.display = 'none'; }
+  prevRegime = currentRegime; prevNav = currentNav;
 }
 
 function updateDisplay() {
@@ -505,13 +564,8 @@ function updateDisplay() {
     return calculateWMA(windowPrices, 20);
   });
 
-  // Check for Alerts before rendering
-  if(currentIdx > simStartIdx) {
-      checkAlerts(currentRegime, currentNav, chartData);
-  } else {
-      prevRegime = currentRegime;
-      prevNav = currentNav;
-  }
+  if(currentIdx > simStartIdx) { checkAlerts(currentRegime, currentNav, chartData); } 
+  else { prevRegime = currentRegime; prevNav = currentNav; }
 
   const ctx = document.getElementById('mainChart').getContext('2d');
   if(chart) chart.destroy();
@@ -542,48 +596,34 @@ function trade(action) {
   if (action === 'BUY25') { 
     amtTraded = cash * 0.25; 
     if(amtTraded > 10) { 
-      unitsTraded = amtTraded / nav; 
-      units += unitsTraded; 
-      cash -= amtTraded; 
-      principalInvested += amtTraded; 
+      unitsTraded = amtTraded / nav; units += unitsTraded; cash -= amtTraded; principalInvested += amtTraded; 
       tradeLog.push({ day: dayNum, action: 'BUY', nav: nav, units: unitsTraded });
     }
   } else if (action === 'SELL_PROFIT') {
-    const currentValue = units * nav;
-    const profit = currentValue - principalInvested;
+    const profit = (units * nav) - principalInvested;
     if (profit > 10) {
-        unitsTraded = profit / nav;
-        cash += profit;
-        units -= unitsTraded;
+        unitsTraded = profit / nav; cash += profit; units -= unitsTraded;
         tradeLog.push({ day: dayNum, action: 'SELL PROFIT', nav: nav, units: unitsTraded });
     }
   } else if (action === 'SELL_TSL' || action === 'SELL_REGIME') {
     unitsTraded = units;
     if(unitsTraded > 0.001) {
-      amtTraded = unitsTraded * nav; 
-      cash += amtTraded; 
-      units = 0; 
-      principalInvested = 0; 
-      let logText = action === 'SELL_TSL' ? 'SELL ON TSL' : 'SELL REGIME';
-      tradeLog.push({ day: dayNum, action: logText, nav: nav, units: unitsTraded });
+      amtTraded = unitsTraded * nav; cash += amtTraded; units = 0; principalInvested = 0; 
+      tradeLog.push({ day: dayNum, action: action === 'SELL_TSL' ? 'SELL ON TSL' : 'SELL REGIME', nav: nav, units: unitsTraded });
     }
   } else if (action === 'SELLALL') { 
     unitsTraded = units;
     if(unitsTraded > 0.001) {
-      amtTraded = unitsTraded * nav; 
-      cash += amtTraded; 
-      units = 0; 
-      principalInvested = 0; 
+      amtTraded = unitsTraded * nav; cash += amtTraded; units = 0; principalInvested = 0; 
       tradeLog.push({ day: dayNum, action: 'SELL ALL', nav: nav, units: unitsTraded });
     }
   }
-  
-  document.getElementById('alertBanner').style.display = 'none'; // Clear alert on action
+  document.getElementById('alertBanner').style.display = 'none'; 
   nextDay();
 }
 
 function nextDay() { 
-    document.getElementById('alertBanner').style.display = 'none'; // Clear alert on next day
+    document.getElementById('alertBanner').style.display = 'none'; 
     if(currentIdx < fullHistory.length - 1) { currentIdx++; updateDisplay(); } 
 }
 
