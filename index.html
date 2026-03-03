@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MF Lie Detector - Pro Mastery v4.5</title>
+<title>MF Lie Detector - Pro Mastery v4.8</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -113,8 +113,8 @@
 <div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.7rem; margin-top: 10px;" id="ovTxt">SYNCING...</div></div>
 
 <div id="setupScreen">
-  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v4.5</h1>
-  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Process Audit & Logic Stabilized</p>
+  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v4.8</h1>
+  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Complete Universe & Audit Engine</p>
   
   <div class="fund-grid" id="fundGrid">
     <div class="fund-box" onclick="selectAMC('HDFC', this)">HDFC</div>
@@ -210,7 +210,7 @@
 
 <div id="gameUI" style="display: none; height: 100vh; flex-direction: column;">
   <header class="app-header">
-    <div class="logo">LIE DETECTOR V4.5</div>
+    <div class="logo">LIE DETECTOR V4.8</div>
     <div style="display: flex; gap: 8px; align-items: center;">
       <button class="btn-log" onclick="showLog()">LOG</button>
       <button class="btn-review" onclick="endAndReview()">END & REVIEW</button>
@@ -268,6 +268,13 @@ const amcFunds = {
   'HDFC': [
     { name: '[MF] HDFC Flexi Cap - Growth', code: '118989' },
     { name: '[MF] HDFC Balanced Advantage - Growth', code: '118968' },
+    { name: '[MF] HDFC Gold ETF FoF - Direct', code: '119132' },
+    { name: '[MF] HDFC Nifty100 Quality 30 - Direct', code: '153264' },
+    { name: '[MF] HDFC Silver ETF FoF - Direct', code: '150737' },
+    { name: '[MF] HDFC Nifty Realty Index - Direct', code: '152521' },
+    { name: '[MF] HDFC Nifty India Digital - Direct', code: '153097' },
+    { name: '[MF] HDFC Nifty India Consumption - Direct', code: '154179' },
+    { name: '[MF] HDFC NIFTY500 Multicap 50:25:25 - Direct', code: '152778' },
     { name: '[NPS] HDFC Scheme E - Tier I', code: 'SM008001' },
     { name: '[NPS] HDFC Scheme C - Tier I', code: 'SM008002' },
     { name: '[NPS] HDFC Scheme E - Tier II', code: 'SM008004' }
@@ -275,7 +282,13 @@ const amcFunds = {
   'ICICI': [
     { name: '[MF] ICICI Flexicap - Growth', code: '119062' },
     { name: '[MF] ICICI Balanced Advantage - Growth', code: '120377' },
-    { name: '[MF] ICICI Nifty200 Value 30 - Growth', code: '152932' },
+    { name: '[MF] ICICI Nifty IT Index - Direct', code: '150468' },
+    { name: '[MF] ICICI Nifty EV & New Age Auto - Direct', code: '153394' },
+    { name: '[MF] ICICI Nifty Private Bank - Direct', code: '153679' },
+    { name: '[MF] ICICI Nifty200 Value 30 - Direct', code: '152936' },
+    { name: '[MF] ICICI Nifty Bank Index - Direct', code: '149858' },
+    { name: '[MF] ICICI Nifty Auto Index - Direct', code: '150643' },
+    { name: '[MF] ICICI Nifty Pharma Index - Direct', code: '150930' },
     { name: '[NPS] ICICI Scheme E - Tier I', code: 'SM007001' },
     { name: '[NPS] ICICI Scheme C - Tier I', code: 'SM007002' },
     { name: '[NPS] ICICI Scheme E - Tier II', code: 'SM007004' },
@@ -284,8 +297,17 @@ const amcFunds = {
   'KOTAK': [
     { name: '[MF] KOTAK Flexicap - Growth', code: '103096' },
     { name: '[MF] KOTAK Balanced Advantage - Growth', code: '144335' },
-    { name: '[MF] KOTAK Nifty Commodities - Growth', code: '153353' },
-    { name: '[MF] KOTAK Gold Silver Passive FOF', code: '153921' },
+    { name: '[MF] Kotak Nifty SmallCap 250 - Direct', code: '153223' },
+    { name: '[MF] Kotak Nifty Commodities - Direct', code: '153353' },
+    { name: '[MF] Kotak BSE Housing Index - Direct', code: '152039' },
+    { name: '[MF] Kotak Gold Silver Passive FoF - Direct', code: '153921' },
+    { name: '[MF] Kotak Silver ETF FoF - Direct', code: '151603' },
+    { name: '[MF] Kotak Gold Fund - Direct', code: '119781' },
+    { name: '[MF] Kotak Nifty 200 Momentum 30 - Direct', code: '151781' },
+    { name: '[MF] Kotak Nifty Fin Serv Ex-Bank - Direct', code: '151911' },
+    { name: '[MF] Kotak Nifty500 Momentum 50 - Direct', code: '154032' },
+    { name: '[MF] Kotak Nifty200 Value 30 - Direct', code: '154145' },
+    { name: '[MF] Kotak Nifty Midcap 150 Mom 50 - Direct', code: '152916' },
     { name: '[NPS] KOTAK Scheme E - Tier I', code: 'SM005001' },
     { name: '[NPS] KOTAK Scheme C - Tier I', code: 'SM005002' },
     { name: '[NPS] KOTAK Scheme E - Tier II', code: 'SM005004' },
@@ -294,7 +316,12 @@ const amcFunds = {
   'ABSL': [
     { name: '[MF] ABSL Flexi Cap - Growth', code: '120517' },
     { name: '[MF] ABSL Balanced Advantage - Growth', code: '131670' },
-    { name: '[MF] ABSL Gold Fund - Growth', code: '120546' }
+    { name: '[MF] ABSL Gold Fund - Growth', code: '120546' },
+    { name: '[MF] ABSL Nifty Midcap 150 - Direct', code: '148807' },
+    { name: '[MF] ABSL BSE 500 Momentum 50 - Direct', code: '153736' },
+    { name: '[MF] ABSL Nifty India Defence - Direct', code: '152798' },
+    { name: '[MF] ABSL BSE India Infrastructure - Direct', code: '153081' },
+    { name: '[MF] ABSL Silver ETF FOF - Direct', code: '149780' }
   ]
 };
 
@@ -553,7 +580,6 @@ function updateDisplay() {
   let isFlexi = document.getElementById('fundSelect').options[document.getElementById('fundSelect').selectedIndex].text.toLowerCase().includes('flexi');
   let firstBuyDay = tranches.length > 0 ? Math.min(...tranches.map(t => t.day)) : null;
   
-  // Feature Check: Is user opting into the lock?
   let lockEnabled = document.getElementById('flexiLockToggle').checked;
   let flexiLocked = lockEnabled && isFlexi && firstBuyDay !== null && (dayNum - firstBuyDay) < 220;
 
