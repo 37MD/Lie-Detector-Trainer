@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MF Lie Detector - Pro Mastery v4.4</title>
+<title>MF Lie Detector - Pro Mastery v4.5</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -55,7 +55,7 @@
 
   .action-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--surface2); border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; padding: 8px; z-index: 200; }
   .btn { font-family: var(--mono); font-weight: 400; font-size: 0.85rem; padding: 10px 2px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; text-transform: uppercase; text-align: center; }
-  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; border-color: var(--border) !important; color: var(--muted) !important; background: transparent !important; }
   .btn-buy { border-color: var(--accent); color: var(--accent); background: transparent; }
   .btn-hold { border-color: var(--muted); color: var(--muted); background: transparent; }
   .btn-sell { border-color: var(--red); color: var(--red); background: rgba(239, 68, 68, 0.05); }
@@ -67,10 +67,7 @@
   .fund-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; width: 100%; max-width: 350px; margin-bottom: 0.5rem; }
   .fund-box { background: var(--surface2); border: 2px solid var(--border); color: var(--text); padding: 12px 2px; border-radius: 6px; font-family: var(--sans); font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
   .fund-box.active { border-color: var(--accent); background: rgba(16, 185, 129, 0.1); color: var(--accent); }
-  .dropdown { background: var(--surface2); border: 1px solid var(--border); color: white; padding: 12px; width: 100%; max-width: 350px; margin-bottom: 1.5rem; border-radius: 6px; font-family: var(--sans); font-size: 0.85rem; }
-  
-  .modal-overlay { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 600; flex-direction: column; }
-  .modal-close { padding: 12px 15px; text-align: right; color: var(--red); font-weight: bold; font-family: var(--mono); cursor: pointer; border-bottom: 1px solid var(--border); background: var(--surface); display: flex; justify-content: space-between; align-items: center; }
+  .dropdown { background: var(--surface2); border: 1px solid var(--border); color: white; padding: 12px; width: 100%; max-width: 350px; margin-bottom: 1rem; border-radius: 6px; font-family: var(--sans); font-size: 0.85rem; }
   
   .log-table { width: 100%; font-family: var(--mono); font-size: 0.8rem; text-align: left; border-collapse: collapse; }
   .log-table th { padding: 10px 5px; border-bottom: 1px solid var(--border); color: var(--muted); }
@@ -88,21 +85,27 @@
   .fb-good { border-color: var(--accent); }
   .fb-bad { border-color: var(--red); }
   .fb-warn { border-color: var(--accent2); }
-
+  
   .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
   .report-item { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; }
   .rep-label { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
   .rep-score { font-family: var(--mono); font-size: 1.1rem; font-weight: 700; margin-top: 4px; }
   .pos-score { color: var(--accent); }
   .neg-score { color: var(--red); }
-
+  
   .tf-row { display: flex; justify-content: space-around; background: var(--surface2); padding: 5px; border-bottom: 1px solid var(--border); }
   .tf-btn { background: transparent; border: none; color: var(--muted); font-family: var(--mono); font-size: 0.75rem; padding: 5px 10px; cursor: pointer; }
   .tf-btn.active { color: var(--accent); font-weight: 700; border-bottom: 2px solid var(--accent); }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 600; flex-direction: column; }
+  .modal-close { padding: 12px 15px; text-align: right; color: var(--red); font-weight: bold; font-family: var(--mono); cursor: pointer; border-bottom: 1px solid var(--border); background: var(--surface); display: flex; justify-content: space-between; align-items: center; }
 
   #ov { display: none; position: fixed; inset: 0; background: rgba(8,11,18,0.95); z-index: 1000; align-items: center; justify-content: center; flex-direction: column; }
   .spin { width: 35px; height: 35px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
+  
+  /* Feature Toggle */
+  .toggle-container { margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; font-size: 0.75rem; color: var(--muted); background: var(--surface2); padding: 8px; border-radius: 6px; border: 1px solid var(--border); }
+  .toggle-check { accent-color: var(--accent); transform: scale(1.2); cursor: pointer; }
 </style>
 </head>
 <body>
@@ -110,17 +113,22 @@
 <div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.7rem; margin-top: 10px;" id="ovTxt">SYNCING...</div></div>
 
 <div id="setupScreen">
-  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v4.4</h1>
-  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Process Audit & Scoring Engine</p>
+  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v4.5</h1>
+  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Process Audit & Logic Stabilized</p>
   
   <div class="fund-grid" id="fundGrid">
-    <div class="fund-box active" onclick="selectAMC('HDFC', this)">HDFC</div>
-    <div class="fund-box" onclick="selectAMC('ICICI', this)">ICICI</div>
+    <div class="fund-box" onclick="selectAMC('HDFC', this)">HDFC</div>
+    <div class="fund-box active" onclick="selectAMC('ICICI', this)">ICICI</div>
     <div class="fund-box" onclick="selectAMC('KOTAK', this)">KOTAK</div>
     <div class="fund-box" onclick="selectAMC('ABSL', this)">ABSL</div>
   </div>
 
   <select id="fundSelect" class="dropdown"></select>
+
+  <div class="toggle-container">
+    <input type="checkbox" id="flexiLockToggle" class="toggle-check" checked>
+    <label for="flexiLockToggle" style="cursor: pointer;">Enable "Flexicap Lock" Rule (220 days)</label>
+  </div>
 
   <div style="display: flex; gap: 10px; width: 100%; max-width: 350px;">
     <button class="btn btn-buy" style="flex: 2; font-weight: 700; border: 1px solid var(--accent);" onclick="initGame()">Start Sim</button>
@@ -191,7 +199,7 @@
       </div>
       <div class="report-item">
         <div class="rep-label">Net Worth</div>
-        <div class="rep-score" id="revNW">--</div>
+        <div class="rep-score" id="revNW2">--</div>
       </div>
     </div>
     
@@ -202,7 +210,7 @@
 
 <div id="gameUI" style="display: none; height: 100vh; flex-direction: column;">
   <header class="app-header">
-    <div class="logo">LIE DETECTOR V4.4</div>
+    <div class="logo">LIE DETECTOR V4.5</div>
     <div style="display: flex; gap: 8px; align-items: center;">
       <button class="btn-log" onclick="showLog()">LOG</button>
       <button class="btn-review" onclick="endAndReview()">END & REVIEW</button>
@@ -302,7 +310,7 @@ function selectAMC(amc, element) {
     select.appendChild(opt);
   });
 }
-window.onload = () => selectAMC('HDFC', document.querySelector('.fund-box.active'));
+window.onload = () => selectAMC('ICICI', document.querySelector('.fund-box.active'));
 
 let fullHistory = [], globalLiveData = [];
 let currentIdx = 0, simStartIdx = 0, chart = null, deltaChart = null, liveChart = null, liveDeltaChart = null;
@@ -538,9 +546,16 @@ function updateDisplay() {
   let currentDD = peakNetWorth > 0 ? ((peakNetWorth - currentNW) / peakNetWorth) * 100 : 0;
   if (currentDD > maxDrawdown) maxDrawdown = currentDD;
 
+  document.getElementById('cashVal').textContent = `₹${Math.round(cash).toLocaleString()}`;
+  document.getElementById('nwVal').textContent = `₹${Math.round(currentNW).toLocaleString()}`;
+  document.getElementById('ddVal').textContent = `-${currentDD.toFixed(1)}%`;
+
   let isFlexi = document.getElementById('fundSelect').options[document.getElementById('fundSelect').selectedIndex].text.toLowerCase().includes('flexi');
   let firstBuyDay = tranches.length > 0 ? Math.min(...tranches.map(t => t.day)) : null;
-  let flexiLocked = isFlexi && firstBuyDay !== null && (dayNum - firstBuyDay) < 220;
+  
+  // Feature Check: Is user opting into the lock?
+  let lockEnabled = document.getElementById('flexiLockToggle').checked;
+  let flexiLocked = lockEnabled && isFlexi && firstBuyDay !== null && (dayNum - firstBuyDay) < 220;
 
   const btnBuy = document.getElementById('btnBuy');
   const sellBtns = [document.getElementById('btnProfit'), document.getElementById('btnTsl'), document.getElementById('btnRegime'), document.getElementById('btnAll')];
@@ -669,74 +684,48 @@ function trade(action) {
 function nextDay() { 
     if(buyLockoutTimer > 0) buyLockoutTimer--;
     document.getElementById('alertBanner').style.display = 'none'; 
-    if(currentIdx < fullHistory.length - 1) { currentIdx++; updateDisplay(); } 
+    if(currentIdx < fullHistory.length - 1) { 
+        currentIdx++; 
+        updateDisplay(); 
+    } 
 }
 
 function endAndReview() {
     let scoreEntry = 0, scoreExit = 0, scoreProfit = 0;
-    
-    // Scan Logs for Action Compliance
     tradeLog.forEach(t => {
-      // Entry Logic (Weight: 20)
-      if(t.action === 'BUY') {
-        if(t.regime === 'A') scoreEntry += 20; 
-        else scoreEntry -= 10; // Penalty for buying in B/C
-      }
-      // Exit Logic (Weight: 30)
-      if(t.action.includes('TSL') || t.action.includes('REGIME')) {
-        scoreExit += 30; // Good defense
-      }
-      // Profit Logic (Weight: 5)
-      if(t.action.includes('PROFIT')) {
-        scoreProfit += 5;
-      }
+      if(t.action === 'BUY') { if(t.regime === 'A') scoreEntry += 20; else scoreEntry -= 10; }
+      if(t.action.includes('TSL') || t.action.includes('REGIME')) { scoreExit += 30; }
+      if(t.action.includes('PROFIT')) { scoreProfit += 5; }
     });
-
-    // Scan History for Missed Opportunities
     for(let i = simStartIdx; i <= currentIdx; i++) {
        let prices = fullHistory.slice(0, i + 1).map(h => h.nav);
        let dRsi = calculateRSI(prices, 14);
        let wRsi = calculateRSI(prices.filter((_, idx) => idx % 5 === 0), 14);
        let regime = wRsi >= 50 ? 'A' : (wRsi >= 40 ? 'B' : 'C');
        let delta = dRsi - wRsi;
-       
        let dayTrade = tradeLog.find(t => t.day === (i - simStartIdx));
-       
-       // Missed Entry Signal? (Regime A + Delta < -20)
-       if(regime === 'A' && delta < -20 && (!dayTrade || dayTrade.action !== 'BUY')) {
-          scoreEntry -= 5; // Hesitation penalty
-       }
-       
-       // Missed Profit Signal? (Delta > 20)
-       if(delta > 20 && (!dayTrade || !dayTrade.action.includes('PROFIT'))) {
-          scoreProfit -= 2; // Greed penalty
-       }
+       if(regime === 'A' && delta < -20 && (!dayTrade || dayTrade.action !== 'BUY')) { scoreEntry -= 5; }
+       if(delta > 20 && (!dayTrade || !dayTrade.action.includes('PROFIT'))) { scoreProfit -= 2; }
     }
-
     let totalScore = scoreEntry + scoreExit + scoreProfit;
     let totalUnits = tranches.reduce((sum, t) => sum + t.units, 0);
     let finalNW = cash + (totalUnits * fullHistory[currentIdx].nav);
 
     document.getElementById('totalScore').textContent = totalScore;
     document.getElementById('totalScore').style.color = totalScore > 0 ? 'var(--accent)' : 'var(--red)';
-    
     document.getElementById('scoreEntry').textContent = scoreEntry;
     document.getElementById('scoreEntry').className = "rep-score " + (scoreEntry >= 0 ? 'pos-score' : 'neg-score');
-    
     document.getElementById('scoreExit').textContent = scoreExit;
     document.getElementById('scoreExit').className = "rep-score " + (scoreExit >= 0 ? 'pos-score' : 'neg-score');
-    
     document.getElementById('scoreProfit').textContent = scoreProfit;
     document.getElementById('scoreProfit').className = "rep-score " + (scoreProfit >= 0 ? 'pos-score' : 'neg-score');
-
-    document.getElementById('revNW').textContent = `₹${Math.round(finalNW).toLocaleString()}`;
-    document.getElementById('revNW').className = "rep-score pos-score";
+    document.getElementById('revNW2').textContent = `₹${Math.round(finalNW).toLocaleString()}`;
+    document.getElementById('revNW2').className = "rep-score pos-score";
 
     let fbHtml = "";
-    if(scoreExit < 0) fbHtml += `<div class="feedback-box fb-bad"><strong>⚠️ CRITICAL FAILURE:</strong> Your Defense score is negative. You are either holding losers too long or selling winners too early. Fix this first.</div>`;
-    else if(scoreEntry < 0) fbHtml += `<div class="feedback-box fb-warn"><strong>⚠️ HESITATION:</strong> You are missing key entry signals. Trust the Green Line.</div>`;
-    else fbHtml += `<div class="feedback-box fb-good"><strong>✅ DISCIPLINED TRADING:</strong> Your process is solid. Keep following the rules.</div>`;
-
+    if(scoreExit < 0) fbHtml += `<div class="feedback-box fb-bad"><strong>⚠️ CRITICAL FAILURE:</strong> Negative Defense score. You are holding losers or selling winners early.</div>`;
+    else if(scoreEntry < 0) fbHtml += `<div class="feedback-box fb-warn"><strong>⚠️ HESITATION:</strong> Missing key entry signals. Trust the Green Line.</div>`;
+    else fbHtml += `<div class="feedback-box fb-good"><strong>✅ DISCIPLINED:</strong> Solid process. Keep it up.</div>`;
     document.getElementById('feedbackContainer').innerHTML = fbHtml;
     document.getElementById('reviewModal').style.display = 'flex';
 }
