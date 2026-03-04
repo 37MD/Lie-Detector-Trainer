@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MF Lie Detector - Pro Mastery v5.1</title>
+<title>MF Lie Detector - Pro Mastery v5.2</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
@@ -120,8 +120,8 @@
 <div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.7rem; margin-top: 10px;" id="ovTxt">SYNCING...</div></div>
 
 <div id="setupScreen">
-  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v5.1</h1>
-  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Mobile Zoom Fix & Sync Cursor</p>
+  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v5.2</h1>
+  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Safety Override & Synced Charts</p>
   
   <div class="fund-grid" id="fundGrid">
     <div class="fund-box" onclick="selectAMC('HDFC', this)">HDFC</div>
@@ -229,7 +229,7 @@
 
 <div id="gameUI" style="display: none; height: 100vh; flex-direction: column;">
   <header class="app-header">
-    <div class="logo">LIE DETECTOR V5.1</div>
+    <div class="logo">LIE DETECTOR V5.2</div>
     <div style="display: flex; gap: 8px; align-items: center;">
       <button class="btn-log" onclick="showLog()">LOG</button>
       <button class="btn-review" onclick="endAndReview()">END & REVIEW</button>
@@ -392,13 +392,11 @@ const universalAnnotationsPlugin = {
     const wma = chart.data.datasets[1] ? chart.data.datasets[1].data : [];
     
     // LASER SIGHT LOGIC (SYNCED)
-    // Draw vertical line if ANY chart in the group is active
     if (chart.canvas.id.includes('live') && liveChart && liveDeltaChart) {
        const activeMain = liveChart.tooltip && liveChart.tooltip._active && liveChart.tooltip._active.length;
        const activeDelta = liveDeltaChart.tooltip && liveDeltaChart.tooltip._active && liveDeltaChart.tooltip._active.length;
        
        if (activeMain || activeDelta) {
-           // Find the X coordinate from whichever chart is active
            let x;
            if(activeMain) x = liveChart.tooltip._active[0].element.x;
            else if(activeDelta) x = liveDeltaChart.tooltip._active[0].element.x;
@@ -703,6 +701,23 @@ function updateDisplay() {
   let lockEnabled = document.getElementById('flexiLockToggle').checked;
   let flexiLocked = lockEnabled && isFlexi && firstBuyDay !== null && (dayNum - firstBuyDay) < 220;
 
+  // SAFETY OVERRIDE: Check if TSL is hit
+  const chartData = visible.slice(-80);
+  let tsl1 = null, alertMsg = "";
+  for(let i = chartData.length - 3; i >= 2; i--) {
+    if(chartData[i].nav < chartData[i-1].nav && chartData[i].nav < chartData[i-2].nav && chartData[i].nav <= chartData[i+1].nav && chartData[i].nav <= chartData[i+2].nav) { tsl1 = chartData[i].nav; break; }
+  }
+  let tslHit = tsl1 && prevNav >= tsl1 && currentNav < tsl1;
+  let regimeCrash = prevRegime === 'B' && currentRegime === 'C';
+
+  if (currentIdx > simStartIdx) {
+      if (prevRegime && currentRegime !== prevRegime && ((prevRegime === 'A' && currentRegime !== 'A') || (prevRegime === 'B' && currentRegime === 'C'))) alertMsg = `⚠️ REGIME DOWNGRADE: ${prevRegime} ➔ ${currentRegime} `;
+      if (tslHit) alertMsg += (alertMsg?" | ":"") + `🚨 TSL BREAKDOWN`;
+      const banner = document.getElementById('alertBanner');
+      if (alertMsg) { banner.textContent = alertMsg; banner.style.display = 'block'; } else banner.style.display = 'none';
+  }
+  prevRegime = currentRegime; prevNav = currentNav;
+
   const btnBuy = document.getElementById('btnBuy');
   const sellBtns = [document.getElementById('btnProfit'), document.getElementById('btnTsl'), document.getElementById('btnRegime'), document.getElementById('btnAll')];
   
@@ -710,23 +725,22 @@ function updateDisplay() {
   else { btnBuy.disabled = false; btnBuy.textContent = `BUY 25%`; btnBuy.style.borderColor = 'var(--accent)'; btnBuy.style.color = 'var(--accent)'; }
 
   sellBtns.forEach(btn => {
-      if(flexiLocked) { btn.disabled = true; if(btn.id === 'btnAll') btn.textContent = `LOCK (${220 - (dayNum - firstBuyDay)}d)`; } 
-      else { btn.disabled = false; if(btn.id === 'btnAll') btn.textContent = `SELL ALL`; }
-  });
+      // DEFAULT: Lock if Flexi logic applies
+      let isDisabled = flexiLocked;
+      
+      // OVERRIDE: If TSL hit or Regime Crash, FORCE ENABLE defense buttons
+      if ((tslHit || regimeCrash) && (btn.id === 'btnTsl' || btn.id === 'btnRegime')) {
+          isDisabled = false; 
+      }
 
-  const chartData = visible.slice(-80);
-  
-  let tsl1 = null, alertMsg = "";
-  for(let i = chartData.length - 3; i >= 2; i--) {
-    if(chartData[i].nav < chartData[i-1].nav && chartData[i].nav < chartData[i-2].nav && chartData[i].nav <= chartData[i+1].nav && chartData[i].nav <= chartData[i+2].nav) { tsl1 = chartData[i].nav; break; }
-  }
-  if (currentIdx > simStartIdx) {
-      if (prevRegime && currentRegime !== prevRegime && ((prevRegime === 'A' && currentRegime !== 'A') || (prevRegime === 'B' && currentRegime === 'C'))) alertMsg = `⚠️ REGIME DOWNGRADE: ${prevRegime} ➔ ${currentRegime} `;
-      if (tsl1 && prevNav >= tsl1 && currentNav < tsl1) alertMsg += (alertMsg?" | ":"") + `🚨 TSL BREAKDOWN`;
-      const banner = document.getElementById('alertBanner');
-      if (alertMsg) { banner.textContent = alertMsg; banner.style.display = 'block'; } else banner.style.display = 'none';
-  }
-  prevRegime = currentRegime; prevNav = currentNav;
+      if(isDisabled) { 
+          btn.disabled = true; 
+          if(btn.id === 'btnAll') btn.textContent = `LOCK (${220 - (dayNum - firstBuyDay)}d)`; 
+      } else { 
+          btn.disabled = false; 
+          if(btn.id === 'btnAll') btn.textContent = `SELL ALL`; 
+      }
+  });
 
   const wmaData = chartData.map((_, i) => { return calculateWMA(fullHistory.slice(0, currentIdx - (chartData.length - 1) + i + 1).map(h => h.nav), 20); });
   
@@ -757,7 +771,7 @@ function updateDisplay() {
     },
     options: { 
         responsive: true, maintainAspectRatio: false, 
-        interaction: { mode: 'index', intersect: false }, 
+        interaction: { mode: 'index', intersect: false }, // Enabled Laser Sight for Sim too
         plugins: { legend: { display: false } }, 
         layout: { padding: { top: 15, bottom: 5, left: 5, right: 5 } }, 
         scales: { x: { display: false }, y: { grid: { color: '#1e293b' }, ticks: { display: false } } } 
