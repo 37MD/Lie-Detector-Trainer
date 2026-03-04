@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MF Lie Detector - Pro Mastery v5.0</title>
+<title>MF Lie Detector - Pro Mastery v5.1</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
 
@@ -20,6 +21,9 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background-color: var(--bg); color: var(--text); font-family: var(--sans); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* CRITICAL FOR MOBILE ZOOM: Disables page scrolling on charts */
+  canvas { touch-action: none; }
 
   .app-header { display:flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--surface); border-bottom: 1px solid var(--border); }
   .logo { font-family: var(--mono); font-weight: 700; font-size: 0.85rem; color: var(--accent); }
@@ -105,7 +109,6 @@
   .spin { width: 35px; height: 35px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
   
-  /* Feature Toggle */
   .toggle-container { margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; font-size: 0.75rem; color: var(--muted); background: var(--surface2); padding: 8px; border-radius: 6px; border: 1px solid var(--border); }
   .toggle-check { accent-color: var(--accent); transform: scale(1.2); cursor: pointer; }
   
@@ -117,8 +120,8 @@
 <div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.7rem; margin-top: 10px;" id="ovTxt">SYNCING...</div></div>
 
 <div id="setupScreen">
-  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v5.0</h1>
-  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Smart TSL & Live Cockpit</p>
+  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v5.1</h1>
+  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Mobile Zoom Fix & Sync Cursor</p>
   
   <div class="fund-grid" id="fundGrid">
     <div class="fund-box" onclick="selectAMC('HDFC', this)">HDFC</div>
@@ -226,7 +229,7 @@
 
 <div id="gameUI" style="display: none; height: 100vh; flex-direction: column;">
   <header class="app-header">
-    <div class="logo">LIE DETECTOR V5.0</div>
+    <div class="logo">LIE DETECTOR V5.1</div>
     <div style="display: flex; gap: 8px; align-items: center;">
       <button class="btn-log" onclick="showLog()">LOG</button>
       <button class="btn-review" onclick="endAndReview()">END & REVIEW</button>
@@ -388,21 +391,32 @@ const universalAnnotationsPlugin = {
     const data = chart.data.datasets[0].data;
     const wma = chart.data.datasets[1] ? chart.data.datasets[1].data : [];
     
-    // Laser Sight Logic for Hover (Vertical Line)
-    if (chart.tooltip && chart.tooltip._active && chart.tooltip._active.length) {
-        const activePoint = chart.tooltip._active[0];
-        const x = activePoint.element.x;
-        const topY = chart.scales.y.top;
-        const bottomY = chart.scales.y.bottom;
-        ctx.save();
-        ctx.beginPath();
-        ctx.setLineDash([3, 3]);
-        ctx.moveTo(x, topY);
-        ctx.lineTo(x, bottomY);
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = '#94a3b8'; // Muted Laser
-        ctx.stroke();
-        ctx.restore();
+    // LASER SIGHT LOGIC (SYNCED)
+    // Draw vertical line if ANY chart in the group is active
+    if (chart.canvas.id.includes('live') && liveChart && liveDeltaChart) {
+       const activeMain = liveChart.tooltip && liveChart.tooltip._active && liveChart.tooltip._active.length;
+       const activeDelta = liveDeltaChart.tooltip && liveDeltaChart.tooltip._active && liveDeltaChart.tooltip._active.length;
+       
+       if (activeMain || activeDelta) {
+           // Find the X coordinate from whichever chart is active
+           let x;
+           if(activeMain) x = liveChart.tooltip._active[0].element.x;
+           else if(activeDelta) x = liveDeltaChart.tooltip._active[0].element.x;
+
+           if(x) {
+               const topY = chart.scales.y.top;
+               const bottomY = chart.scales.y.bottom;
+               ctx.save();
+               ctx.beginPath();
+               ctx.setLineDash([3, 3]);
+               ctx.moveTo(x, topY);
+               ctx.lineTo(x, bottomY);
+               ctx.lineWidth = 1;
+               ctx.strokeStyle = '#94a3b8';
+               ctx.stroke();
+               ctx.restore();
+           }
+       }
     }
 
     if(!data || data.length === 0) return;
@@ -487,6 +501,22 @@ async function initLive() {
   updateLiveChart(125); 
 }
 
+// Sync Helper Function
+function syncCharts(source, target, e) {
+    const points = source.getElementsAtEventForMode(e, 'index', { intersect: false }, true);
+    if (points.length) {
+        const index = points[0].index;
+        const targetPoint = target.getDatasetMeta(0).data[index];
+        if(targetPoint) {
+            target.tooltip.setActiveElements([{ datasetIndex: 0, index: index }], { x: targetPoint.x, y: targetPoint.y });
+            target.update();
+        }
+    } else {
+        target.tooltip.setActiveElements([], {});
+        target.update();
+    }
+}
+
 function updateLiveChart(days, btnElement) {
   if(btnElement) {
     const btns = document.getElementById('liveTfRow').children;
@@ -501,14 +531,12 @@ function updateLiveChart(days, btnElement) {
     return calculateWMA(windowPrices, 20);
   });
 
-  // Calculate Latest Metrics for Dashboard
   const latestPrices = globalLiveData.map(d => d.nav);
   const lastNav = latestPrices[latestPrices.length - 1];
   const lastDRsi = calculateRSI(latestPrices, 14);
   const lastWRsi = calculateRSI(latestPrices.filter((_, i) => i % 5 === 0), 14);
   const lastRegime = lastWRsi >= 50 ? 'A' : (lastWRsi >= 40 ? 'B' : 'C');
 
-  // Update Dashboard
   document.getElementById('liveNav').textContent = `₹${lastNav.toFixed(2)}`;
   
   const dRsiEl = document.getElementById('liveDRsi');
@@ -523,7 +551,6 @@ function updateLiveChart(days, btnElement) {
   regEl.textContent = `Regime ${lastRegime}`;
   regEl.className = 'ind-val ' + (lastRegime === 'A' ? 'reg-A' : (lastRegime === 'B' ? 'reg-B' : 'reg-C'));
 
-  // Live Alerts Logic
   let swingLows = [];
   for(let i = globalLiveData.length - 3; i >= 2; i--) {
      if(globalLiveData[i].nav < globalLiveData[i-1].nav && globalLiveData[i].nav < globalLiveData[i-2].nav) {
@@ -568,6 +595,7 @@ function updateLiveChart(days, btnElement) {
     options: { 
         responsive: true, maintainAspectRatio: false, 
         interaction: { mode: 'index', intersect: false },
+        onHover: (e) => syncCharts(liveChart, liveDeltaChart, e), // SYNC TRIGGER
         plugins: { 
             legend: { display: false },
             zoom: {
@@ -594,6 +622,7 @@ function updateLiveChart(days, btnElement) {
       options: {
           responsive: true, maintainAspectRatio: false, 
           interaction: { mode: 'index', intersect: false },
+          onHover: (e) => syncCharts(liveDeltaChart, liveChart, e), // SYNC TRIGGER
           plugins: { legend: { display: false } },
           scales: {
               x: { display: true, grid: { display: false }, ticks: { maxTicksLimit: 6, color: '#94a3b8', font: { size: 9, family: '"Space Mono"' } } },
@@ -728,7 +757,7 @@ function updateDisplay() {
     },
     options: { 
         responsive: true, maintainAspectRatio: false, 
-        interaction: { mode: 'index', intersect: false }, // Enabled Laser Sight for Sim too
+        interaction: { mode: 'index', intersect: false }, 
         plugins: { legend: { display: false } }, 
         layout: { padding: { top: 15, bottom: 5, left: 5, right: 5 } }, 
         scales: { x: { display: false }, y: { grid: { color: '#1e293b' }, ticks: { display: false } } } 
