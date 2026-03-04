@@ -3,8 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MF Lie Detector - Pro Mastery v4.8</title>
+<title>MF Lie Detector - Pro Mastery v5.0</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
@@ -106,6 +108,8 @@
   /* Feature Toggle */
   .toggle-container { margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; font-size: 0.75rem; color: var(--muted); background: var(--surface2); padding: 8px; border-radius: 6px; border: 1px solid var(--border); }
   .toggle-check { accent-color: var(--accent); transform: scale(1.2); cursor: pointer; }
+  
+  .reset-zoom { font-size: 0.6rem; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 2px 6px; border-radius: 4px; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -113,8 +117,8 @@
 <div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.7rem; margin-top: 10px;" id="ovTxt">SYNCING...</div></div>
 
 <div id="setupScreen">
-  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v4.8</h1>
-  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Complete Universe & Audit Engine</p>
+  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v5.0</h1>
+  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Smart TSL & Live Cockpit</p>
   
   <div class="fund-grid" id="fundGrid">
     <div class="fund-box" onclick="selectAMC('HDFC', this)">HDFC</div>
@@ -138,10 +142,22 @@
 
 <div id="liveModal" class="modal-overlay">
   <div class="modal-close">
-    <span style="color: var(--accent2); font-size: 0.8rem;">LIVE ANALYSIS</span>
+    <div style="display:flex; gap:10px; align-items:center;">
+        <span style="color: var(--accent2); font-size: 0.8rem;">LIVE COCKPIT</span>
+        <button class="reset-zoom" onclick="resetLiveZoom()">RESET ZOOM</button>
+    </div>
     <span onclick="closeLive()">[ X ] CLOSE</span>
   </div>
-  <div id="liveAlertBanner">⚠️ LIVE ALERT PLACEHOLDER</div>
+  
+  <div id="liveAlertBanner">⚠️ LIVE ALERT</div>
+
+  <div class="indicator-row" style="border-bottom: 1px dashed var(--border);">
+      <div class="ind-box"><span class="label-sm">NAV</span><div id="liveNav" class="ind-val" style="font-size: 1rem;">--</div></div>
+      <div class="ind-box"><span class="label-sm">Daily RSI</span><div id="liveDRsi" class="ind-val" style="font-size: 1rem;">--</div></div>
+      <div class="ind-box"><span class="label-sm">Weekly RSI</span><div id="liveWRsi" class="ind-val" style="font-size: 1rem;">--</div></div>
+      <div class="ind-box"><span class="label-sm">Regime</span><div id="liveRegimeBlock" class="ind-val" style="font-size: 0.9rem;">--</div></div>
+  </div>
+
   <div class="tf-row" id="liveTfRow">
     <button class="tf-btn" onclick="updateLiveChart(10, this)">2W</button>
     <button class="tf-btn" onclick="updateLiveChart(21, this)">1M</button>
@@ -210,7 +226,7 @@
 
 <div id="gameUI" style="display: none; height: 100vh; flex-direction: column;">
   <header class="app-header">
-    <div class="logo">LIE DETECTOR V4.8</div>
+    <div class="logo">LIE DETECTOR V5.0</div>
     <div style="display: flex; gap: 8px; align-items: center;">
       <button class="btn-log" onclick="showLog()">LOG</button>
       <button class="btn-review" onclick="endAndReview()">END & REVIEW</button>
@@ -295,7 +311,7 @@ const amcFunds = {
     { name: '[NPS] ICICI Scheme C - Tier II', code: 'SM007005' }
   ],
   'KOTAK': [
-    { name: '[MF] KOTAK Flexicap - Growth', code: '103096' },
+    { name: '[MF] KOTAK Flexicap - Growth', code: '120166' },
     { name: '[MF] KOTAK Balanced Advantage - Growth', code: '144335' },
     { name: '[MF] Kotak Nifty SmallCap 250 - Direct', code: '153223' },
     { name: '[MF] Kotak Nifty Commodities - Direct', code: '153353' },
@@ -371,6 +387,24 @@ const universalAnnotationsPlugin = {
     const meta = chart.getDatasetMeta(0);
     const data = chart.data.datasets[0].data;
     const wma = chart.data.datasets[1] ? chart.data.datasets[1].data : [];
+    
+    // Laser Sight Logic for Hover (Vertical Line)
+    if (chart.tooltip && chart.tooltip._active && chart.tooltip._active.length) {
+        const activePoint = chart.tooltip._active[0];
+        const x = activePoint.element.x;
+        const topY = chart.scales.y.top;
+        const bottomY = chart.scales.y.bottom;
+        ctx.save();
+        ctx.beginPath();
+        ctx.setLineDash([3, 3]);
+        ctx.moveTo(x, topY);
+        ctx.lineTo(x, bottomY);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = '#94a3b8'; // Muted Laser
+        ctx.stroke();
+        ctx.restore();
+    }
+
     if(!data || data.length === 0) return;
     
     ctx.save();
@@ -467,6 +501,45 @@ function updateLiveChart(days, btnElement) {
     return calculateWMA(windowPrices, 20);
   });
 
+  // Calculate Latest Metrics for Dashboard
+  const latestPrices = globalLiveData.map(d => d.nav);
+  const lastNav = latestPrices[latestPrices.length - 1];
+  const lastDRsi = calculateRSI(latestPrices, 14);
+  const lastWRsi = calculateRSI(latestPrices.filter((_, i) => i % 5 === 0), 14);
+  const lastRegime = lastWRsi >= 50 ? 'A' : (lastWRsi >= 40 ? 'B' : 'C');
+
+  // Update Dashboard
+  document.getElementById('liveNav').textContent = `₹${lastNav.toFixed(2)}`;
+  
+  const dRsiEl = document.getElementById('liveDRsi');
+  dRsiEl.textContent = Math.round(lastDRsi);
+  dRsiEl.style.color = lastDRsi >= 50 ? 'var(--accent)' : (lastDRsi >= 40 ? 'var(--accent2)' : 'var(--red)');
+  
+  const wRsiEl = document.getElementById('liveWRsi');
+  wRsiEl.textContent = Math.round(lastWRsi);
+  wRsiEl.style.color = lastWRsi >= 50 ? 'var(--accent)' : (lastWRsi >= 40 ? 'var(--accent2)' : 'var(--red)');
+
+  const regEl = document.getElementById('liveRegimeBlock');
+  regEl.textContent = `Regime ${lastRegime}`;
+  regEl.className = 'ind-val ' + (lastRegime === 'A' ? 'reg-A' : (lastRegime === 'B' ? 'reg-B' : 'reg-C'));
+
+  // Live Alerts Logic
+  let swingLows = [];
+  for(let i = globalLiveData.length - 3; i >= 2; i--) {
+     if(globalLiveData[i].nav < globalLiveData[i-1].nav && globalLiveData[i].nav < globalLiveData[i-2].nav) {
+         if(swingLows.length === 0) swingLows.push(globalLiveData[i].nav);
+         if(swingLows.length > 0) break;
+     }
+  }
+  let tslVal = swingLows.length ? swingLows[0] : 0;
+  let alertMsg = "";
+  if(lastNav < tslVal) alertMsg = "🚨 LIVE ALERT: PRICE BELOW TSL";
+  if(lastRegime === 'C') alertMsg = (alertMsg ? alertMsg + " | " : "") + "⚠️ REGIME C BREAKDOWN";
+  
+  const banner = document.getElementById('liveAlertBanner');
+  if(alertMsg) { banner.textContent = alertMsg; banner.style.display = 'block'; }
+  else { banner.style.display = 'none'; }
+
   const deltaData = [], deltaColors = [], wmaRegimes = [];
   for(let i=0; i<dataSlice.length; i++) {
       const endIdx = globalLiveData.length - dataSlice.length + i;
@@ -492,7 +565,19 @@ function updateLiveChart(days, btnElement) {
         }
       ]
     },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, layout: { padding: { top: 15, bottom: 5, left: 5, right: 5 } }, scales: { x: { display: false }, y: { grid: { color: '#1e293b' } } } }
+    options: { 
+        responsive: true, maintainAspectRatio: false, 
+        interaction: { mode: 'index', intersect: false },
+        plugins: { 
+            legend: { display: false },
+            zoom: {
+                zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
+                pan: { enabled: true, mode: 'x' }
+            }
+        }, 
+        layout: { padding: { top: 15, bottom: 5, left: 5, right: 5 } }, 
+        scales: { x: { display: false }, y: { grid: { color: '#1e293b' } } } 
+    }
   });
 
   if(liveDeltaChart) liveDeltaChart.destroy();
@@ -507,13 +592,19 @@ function updateLiveChart(days, btnElement) {
         ] 
       },
       options: {
-          responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+          responsive: true, maintainAspectRatio: false, 
+          interaction: { mode: 'index', intersect: false },
+          plugins: { legend: { display: false } },
           scales: {
               x: { display: true, grid: { display: false }, ticks: { maxTicksLimit: 6, color: '#94a3b8', font: { size: 9, family: '"Space Mono"' } } },
               y: { grid: { color: 'rgba(30, 41, 59, 0.5)' }, border: { dash: [2,4] }, min: -35, max: 35, ticks: { display: false } }
           }
       }
   });
+}
+
+function resetLiveZoom() {
+    if(liveChart) liveChart.resetZoom();
 }
 
 function closeLive() {
@@ -635,7 +726,13 @@ function updateDisplay() {
         }
       ] 
     },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, layout: { padding: { top: 15, bottom: 5, left: 5, right: 5 } }, scales: { x: { display: false }, y: { grid: { color: '#1e293b' }, ticks: { display: false } } } }
+    options: { 
+        responsive: true, maintainAspectRatio: false, 
+        interaction: { mode: 'index', intersect: false }, // Enabled Laser Sight for Sim too
+        plugins: { legend: { display: false } }, 
+        layout: { padding: { top: 15, bottom: 5, left: 5, right: 5 } }, 
+        scales: { x: { display: false }, y: { grid: { color: '#1e293b' }, ticks: { display: false } } } 
+    }
   });
 
   if(deltaChart) deltaChart.destroy();
@@ -649,7 +746,12 @@ function updateDisplay() {
           { type: 'line', label: 'Buy Zone', data: Array(chartData.length).fill(-20), borderColor: '#10b981', borderDash: [2,2], pointRadius: 0, borderWidth: 1 }
         ]
       },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: 'rgba(30, 41, 59, 0.5)' }, border: { dash: [2,4] }, min: -35, max: 35, ticks: { display: false } } } }
+      options: { 
+          responsive: true, maintainAspectRatio: false, 
+          interaction: { mode: 'index', intersect: false },
+          plugins: { legend: { display: false } }, 
+          scales: { x: { display: false }, y: { grid: { color: 'rgba(30, 41, 59, 0.5)' }, border: { dash: [2,4] }, min: -35, max: 35, ticks: { display: false } } } 
+      }
   });
 }
 
@@ -699,9 +801,14 @@ function trade(action) {
     let totalCost = tranches.reduce((sum, t) => sum + (t.units * t.price), 0);
     let profit = (totalUnits * nav) - totalCost;
     if (profit > 10) executeSell(profit / nav, nav, dayNum, 'SELL PROFIT');
-  } else if (action === 'SELL_TSL' || action === 'SELL_REGIME') {
-    executeSell(totalUnits, nav, dayNum, action === 'SELL_TSL' ? 'SELL ON TSL' : 'SELL REGIME');
+  } else if (action === 'SELL_TSL') {
+    // Smart TSL Logic: 50% in Regime A, 100% in Regime B/C
+    let sellRatio = currentRegimeLog === 'A' ? 0.5 : 1.0;
+    executeSell(totalUnits * sellRatio, nav, dayNum, `SELL TSL (${sellRatio*100}%)`);
     buyLockoutTimer = 5; 
+  } else if (action === 'SELL_REGIME') {
+    executeSell(totalUnits, nav, dayNum, 'SELL REGIME');
+    buyLockoutTimer = 5;
   } else if (action === 'SELLALL') { executeSell(totalUnits, nav, dayNum, 'SELL ALL'); }
   document.getElementById('alertBanner').style.display = 'none'; 
   nextDay();
