@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MF Lie Detector - Pro Mastery v5.6</title>
+<title>MF Lie Detector - Pro Mastery v5.8</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
@@ -115,8 +115,8 @@
 <div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.7rem; margin-top: 10px;" id="ovTxt">SYNCING...</div></div>
 
 <div id="setupScreen">
-  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v5.6</h1>
-  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Wave Simulator Edition</p>
+  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v5.8</h1>
+  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">NFO Dynamic RSI Update</p>
   
   <div class="fund-grid" id="fundGrid">
     <div class="fund-box" onclick="selectAMC('HDFC', this)">HDFC</div>
@@ -225,7 +225,7 @@
 
 <div id="gameUI" style="display: none; height: 100vh; flex-direction: column;">
   <header class="app-header">
-    <div class="logo">LIE DETECTOR V5.6</div>
+    <div class="logo">LIE DETECTOR V5.8</div>
     <div style="display: flex; gap: 8px; align-items: center;">
       <button class="btn-log" onclick="showLog()">LOG</button>
       <button class="btn-review" onclick="endAndReview()">END & REVIEW</button>
@@ -390,6 +390,8 @@ const universalAnnotationsPlugin = {
     const data = chart.data.datasets[0].data;
     const wma = chart.data.datasets[1] ? chart.data.datasets[1].data : [];
     
+    if(!data || data.length === 0 || !meta.data || meta.data.length === 0) return;
+
     if (chart.canvas.id.includes('live') && liveChart && liveDeltaChart) {
        const activeMain = liveChart.tooltip && liveChart.tooltip._active && liveChart.tooltip._active.length;
        const activeDelta = liveDeltaChart.tooltip && liveDeltaChart.tooltip._active && liveDeltaChart.tooltip._active.length;
@@ -413,8 +415,6 @@ const universalAnnotationsPlugin = {
        }
     }
 
-    if(!data || data.length === 0) return;
-    
     ctx.save();
     let swingLows = [];
     for(let i = data.length - 3; i >= 2; i--) {
@@ -443,9 +443,11 @@ const universalAnnotationsPlugin = {
         if(i - lastLabelIdx < 8) continue; 
         let window = data.slice(i-5, i+1); let max = Math.max(...window); let min = Math.min(...window);
         if((max - min) / min < 0.015 && wma[i] != null) {
-          let x = meta.data[i-2].x; 
-          if(data[i] > wma[i]) { ctx.fillStyle = '#10b981'; ctx.fillText('PC', x, chart.scales.y.getPixelForValue(min) + 12); lastLabelIdx = i; } 
-          else if(data[i] < wma[i]) { ctx.fillStyle = '#ef4444'; ctx.fillText('NC', x, chart.scales.y.getPixelForValue(max) - 5); lastLabelIdx = i; }
+          if (meta.data[i-2]) { 
+              let x = meta.data[i-2].x; 
+              if(data[i] > wma[i]) { ctx.fillStyle = '#10b981'; ctx.fillText('PC', x, chart.scales.y.getPixelForValue(min) + 12); lastLabelIdx = i; } 
+              else if(data[i] < wma[i]) { ctx.fillStyle = '#ef4444'; ctx.fillText('NC', x, chart.scales.y.getPixelForValue(max) - 5); lastLabelIdx = i; }
+          }
         }
       }
     }
@@ -461,12 +463,20 @@ const universalAnnotationsPlugin = {
   }
 };
 
+// DYNAMIC RSI: Calculates mathematically sound early RSI even if data is < 14 periods
 function calculateRSI(prices, period = 14) {
-  if (prices.length <= period) return 50;
+  if (prices.length <= 2) return 50;
+  let p = Math.min(period, prices.length - 1);
   let gains = 0, losses = 0;
-  for (let i = 1; i <= period; i++) { let d = prices[i] - prices[i - 1]; d > 0 ? gains += d : losses -= d; }
-  let avgGain = gains / period, avgLoss = losses / period;
-  for (let i = period + 1; i < prices.length; i++) {
+  
+  for (let i = 1; i <= p; i++) { 
+      let d = prices[i] - prices[i - 1]; 
+      d > 0 ? gains += d : losses -= d; 
+  }
+  let avgGain = gains / p;
+  let avgLoss = losses / p;
+  
+  for (let i = p + 1; i < prices.length; i++) {
     let d = prices[i] - prices[i - 1];
     avgGain = ((avgGain * (period - 1)) + (d > 0 ? d : 0)) / period;
     avgLoss = ((avgLoss * (period - 1)) + (d < 0 ? -d : 0)) / period;
@@ -549,7 +559,6 @@ function updateLiveChart(days, btnElement) {
   regEl.textContent = `Regime ${lastRegime}`;
   regEl.className = 'ind-val ' + (lastRegime === 'A' ? 'reg-A' : (lastRegime === 'B' ? 'reg-B' : 'reg-C'));
 
-  // DECLINING PC/NC Breakout Math
   let pcAlert = false, ncAlert = false;
   if(latestPrices.length >= 15) {
       let box = latestPrices.slice(-6, -1);
@@ -560,8 +569,8 @@ function updateLiveChart(days, btnElement) {
       let boxWma = calculateWMA(latestPrices.slice(0, -1), 20); 
       
       let isTight = (boxMax - boxMin) / boxMin <= 0.02; 
-      let nearWma = Math.abs(boxMin - boxWma) / boxWma <= 0.04; 
-      let isDeclining = preBoxMax > boxMax * 1.015; // Ensures price actually fell to support
+      let nearWma = boxWma ? (Math.abs(boxMin - boxWma) / boxWma <= 0.04) : false; 
+      let isDeclining = preBoxMax > boxMax * 1.015; 
       
       if (isTight && nearWma && isDeclining) {
           if (lastNav > boxMax) pcAlert = true;
@@ -588,7 +597,7 @@ function updateLiveChart(days, btnElement) {
       if (pcAlert) { alertText = "🟢 BUY SIGNAL: PC BREAKOUT"; alertClass = "alert-buy"; }
       else if (lastDRsi < 40) { alertText = "🟢 BUY SIGNAL: OVERSOLD (RSI < 40)"; alertClass = "alert-buy"; }
       else if (lastDelta < -15) { alertText = "🟢 BUY SIGNAL: SLINGSHOT (Delta < -15)"; alertClass = "alert-buy"; }
-      else if (prevNavVal < prevWmaVal && lastNav > lastWma) { alertText = "🟢 BUY SIGNAL: WMA RECLAIM"; alertClass = "alert-buy"; }
+      else if (prevWmaVal && prevNavVal < prevWmaVal && lastNav > lastWma) { alertText = "🟢 BUY SIGNAL: WMA RECLAIM"; alertClass = "alert-buy"; }
   }
   if (!alertText && lastDelta > 15) { alertText = "🟠 TAKE PROFIT: OVERHEATED"; alertClass = "alert-profit"; }
 
@@ -664,10 +673,16 @@ function closeLive() { document.getElementById('liveModal').style.display = 'non
 async function initGame(mode) {
   document.getElementById('ovTxt').textContent = "SYNCING SIMULATION...";
   fullHistory = await fetchFundData();
-  if(!fullHistory.length) return;
   
+  if(!fullHistory.length) {
+      document.getElementById('ov').style.display = 'none';
+      alert("No data available for this fund.");
+      return;
+  }
+  
+  let minRequired = 20; 
+
   if (mode === 'wave') {
-      // Find ~Sept 1, 2024
       let waveIdx = fullHistory.findIndex(item => {
           let parts = item.date.split('-');
           if(parts.length === 3) {
@@ -677,16 +692,28 @@ async function initGame(mode) {
           }
           return false;
       });
-      if (waveIdx !== -1 && (fullHistory.length - waveIdx) > 50) {
+      if (waveIdx !== -1) {
           simStartIdx = waveIdx;
       } else {
-          alert("Not enough post-Sept 2024 data for this fund. Falling back to random.");
-          simStartIdx = Math.floor(Math.random() * (fullHistory.length - 450)) + 200;
+          alert("Not enough post-Sept 2024 data. Falling back to normal mode.");
+          mode = 'random';
       }
-  } else {
-      simStartIdx = Math.floor(Math.random() * (fullHistory.length - 450)) + 200;
+  } 
+  
+  if (mode !== 'wave') {
+      if (fullHistory.length > 450) {
+          simStartIdx = Math.floor(Math.random() * (fullHistory.length - 450)) + 200;
+      } else if (fullHistory.length > 50) {
+          simStartIdx = Math.floor(Math.random() * (fullHistory.length - 50)) + 20;
+      } else {
+          simStartIdx = Math.min(minRequired, fullHistory.length - 1);
+      }
   }
   
+  if (simStartIdx < minRequired && fullHistory.length > minRequired) simStartIdx = minRequired;
+  if (simStartIdx < 0) simStartIdx = 0;
+  if (simStartIdx >= fullHistory.length) simStartIdx = fullHistory.length - 1;
+
   currentIdx = simStartIdx;
   tradeLog = []; cash = 100000; tranches = []; prevRegime = null; prevNav = null; prevWma = null;
   totalTaxPaid = 0; peakNetWorth = 100000; maxDrawdown = 0; buyLockoutTimer = 0;
@@ -743,7 +770,6 @@ function updateDisplay() {
   let lockEnabled = document.getElementById('flexiLockToggle').checked;
   let flexiLocked = lockEnabled && isFlexi && firstBuyDay !== null && (dayNum - firstBuyDay) < 220;
 
-  // DECLINING PC/NC Breakout Math for Sim
   let pcAlert = false, ncAlert = false;
   if(prices.length >= 15) {
       let box = prices.slice(-6, -1);
@@ -754,7 +780,7 @@ function updateDisplay() {
       let boxWma = calculateWMA(prices.slice(0, -1), 20); 
       
       let isTight = (boxMax - boxMin) / boxMin <= 0.02; 
-      let nearWma = Math.abs(boxMin - boxWma) / boxWma <= 0.04; 
+      let nearWma = boxWma ? (Math.abs(boxMin - boxWma) / boxWma <= 0.04) : false; 
       let isDeclining = preBoxMax > boxMax * 1.015;
       
       if (isTight && nearWma && isDeclining) {
@@ -768,22 +794,36 @@ function updateDisplay() {
   for(let i = chartData.length - 3; i >= 2; i--) {
     if(chartData[i].nav < chartData[i-1].nav && chartData[i].nav < chartData[i-2].nav && chartData[i].nav <= chartData[i+1].nav && chartData[i].nav <= chartData[i+2].nav) { tsl1 = chartData[i].nav; break; }
   }
-  let tslHit = tsl1 && prevNav >= tsl1 && currentNav < tsl1;
-  let regimeCrash = prevRegime === 'B' && currentRegime === 'C';
+  
+  let tslHit = false;
+  if (tsl1 && prevNav !== null) {
+      tslHit = prevNav >= tsl1 && currentNav < tsl1;
+  }
+  
+  // FIXED REGIME DOWNGRADE LOGIC: Alerts on ANY downgrade
+  let regimeDowngrade = prevRegime && (
+        (prevRegime === 'A' && (currentRegime === 'B' || currentRegime === 'C')) ||
+        (prevRegime === 'B' && currentRegime === 'C')
+  );
 
   const banner = document.getElementById('alertBanner');
   let alertText = ""; let alertClass = "";
 
   if (currentIdx > simStartIdx) {
       if (tslHit) { alertText = "🚨 TSL BREAKDOWN"; alertClass = "alert-danger"; }
-      else if (regimeCrash) { alertText = "⚠️ REGIME CRASH (EXIT)"; alertClass = "alert-danger"; }
+      else if (regimeDowngrade) { 
+          alertText = `⚠️ REGIME DOWNGRADE: ${prevRegime} ➔ ${currentRegime}`; 
+          alertClass = "alert-danger"; 
+          if(currentRegime === 'C') alertText = `🚨 REGIME CRASH: ${prevRegime} ➔ C`;
+      }
       else if (ncAlert) { alertText = "🚨 DANGER: NC BREAKDOWN"; alertClass = "alert-danger"; }
       else if (currentRegime === 'A') {
           if (pcAlert) { alertText = "🟢 BUY SIGNAL: PC BREAKOUT"; alertClass = "alert-buy"; }
-          else if (dRsi < 40) { alertText = "🟢 BUY SIGNAL: OVERSOLD"; alertClass = "alert-buy"; }
-          else if (delta < -15) { alertText = "🟢 BUY SIGNAL: SLINGSHOT"; alertClass = "alert-buy"; }
-          else if (prevNav < prevWma && currentNav > currentWma) { alertText = "🟢 BUY SIGNAL: WMA RECLAIM"; alertClass = "alert-buy"; }
+          else if (dRsi < 40) { alertText = "🟢 BUY SIGNAL: OVERSOLD (RSI < 40)"; alertClass = "alert-buy"; }
+          else if (delta < -15) { alertText = "🟢 BUY SIGNAL: SLINGSHOT (Delta < -15)"; alertClass = "alert-buy"; }
+          else if (prevWma && prevNav < prevWma && currentNav > currentWma) { alertText = "🟢 BUY SIGNAL: WMA RECLAIM"; alertClass = "alert-buy"; }
       }
+      
       if (!alertText && delta > 15) { alertText = "🟠 TAKE PROFIT (DELTA > 15)"; alertClass = "alert-profit"; }
   }
 
@@ -810,7 +850,8 @@ function updateDisplay() {
 
   sellBtns.forEach(btn => {
       let isDisabled = flexiLocked;
-      if ((tslHit || regimeCrash) && (btn.id === 'btnTsl' || btn.id === 'btnRegime')) isDisabled = false;
+      // Allow selling if TSL hit, or if Regime is C
+      if ((tslHit || currentRegime === 'C') && (btn.id === 'btnTsl' || btn.id === 'btnRegime' || btn.id === 'btnAll')) isDisabled = false;
       if(isDisabled) { btn.disabled = true; if(btn.id === 'btnAll') btn.textContent = `LOCK (${220 - (dayNum - firstBuyDay)}d)`; } 
       else { btn.disabled = false; if(btn.id === 'btnAll') btn.textContent = `SELL ALL`; }
   });
