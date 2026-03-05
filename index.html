@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MF Lie Detector - Pro Mastery v6.0</title>
+<title>MF Lie Detector - Pro Mastery v6.1</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
@@ -34,7 +34,6 @@
   .alert-danger { background: var(--red); color: white; }
   .alert-buy { background: var(--accent); color: #000; }
   .alert-profit { background: var(--gold); color: #000; }
-  /* MEGA ALERT FOR REGIME A RESTORED */
   .alert-mega { font-size: 1.15rem !important; padding: 12px !important; letter-spacing: 0.5px; }
   
   @keyframes pulseAlert { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
@@ -118,8 +117,8 @@
 <div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.7rem; margin-top: 10px;" id="ovTxt">SYNCING...</div></div>
 
 <div id="setupScreen">
-  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v6.0</h1>
-  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Precision PC Filtering & Mega Alerts</p>
+  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v6.1</h1>
+  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Core Stabilization & Math Safety</p>
   
   <div class="fund-grid" id="fundGrid">
     <div class="fund-box" onclick="selectAMC('HDFC', this)">HDFC</div>
@@ -228,7 +227,7 @@
 
 <div id="gameUI" style="display: none; height: 100vh; flex-direction: column;">
   <header class="app-header">
-    <div class="logo">LIE DETECTOR V6.0</div>
+    <div class="logo">LIE DETECTOR V6.1</div>
     <div style="display: flex; gap: 8px; align-items: center;">
       <button class="btn-log" onclick="showLog()">LOG</button>
       <button class="btn-review" onclick="endAndReview()">END & REVIEW</button>
@@ -377,10 +376,11 @@ async function fetchFundData() {
     const res = await fetch(url);
     const data = await res.json();
     document.getElementById('ov').style.display = 'none';
+    if (!data || !data.data) return [];
     return data.data.map(d => ({nav: parseFloat(d.nav), date: d.date})).reverse();
   } catch(e) {
     document.getElementById('ov').style.display = 'none';
-    alert("API temporarily down. If NPS, check CORS.");
+    alert("API temporarily down. Check internet or CORS.");
     return [];
   }
 }
@@ -395,7 +395,7 @@ const universalAnnotationsPlugin = {
     
     if(!data || data.length === 0 || !meta.data || meta.data.length === 0) return;
 
-    if (chart.canvas.id.includes('live') && liveChart && liveDeltaChart) {
+    if (chart.canvas.id.includes('live') && typeof liveChart !== 'undefined' && typeof liveDeltaChart !== 'undefined' && liveChart && liveDeltaChart) {
        const activeMain = liveChart.tooltip && liveChart.tooltip._active && liveChart.tooltip._active.length;
        const activeDelta = liveDeltaChart.tooltip && liveDeltaChart.tooltip._active && liveDeltaChart.tooltip._active.length;
        if (activeMain || activeDelta) {
@@ -442,16 +442,15 @@ const universalAnnotationsPlugin = {
     if(wma.length > 0) {
       ctx.font = '8px "Space Mono"'; ctx.textAlign = 'center'; ctx.setLineDash([]); 
       let lastLabelIdx = -50;
-      // UPDATED VISUAL PC: 50 Day Lookback filtering
       for(let i = 50; i < data.length; i++) {
         if(i - lastLabelIdx < 8) continue; 
         let window = data.slice(i-5, i+1); let max = Math.max(...window); let min = Math.min(...window);
         let preBox = data.slice(i-50, i-5);
-        let preMax = Math.max(...preBox);
+        let preMax = preBox.length ? Math.max(...preBox) : 0;
         
         if((max - min) / min < 0.015 && wma[i] != null) {
-          let isDeclining = preMax > max * 1.02; // Visually requires a 2% fall within the last 50 bars
-          if (meta.data[i-2] && isDeclining) { 
+          let isDeclining = preMax > max * 1.02;
+          if (meta.data[i-2] && meta.data[i-2].x !== undefined && isDeclining) { 
               let x = meta.data[i-2].x; 
               if(data[i] > wma[i]) { ctx.fillStyle = '#10b981'; ctx.fillText('PC', x, chart.scales.y.getPixelForValue(min) + 12); lastLabelIdx = i; } 
               else if(data[i] < wma[i]) { ctx.fillStyle = '#ef4444'; ctx.fillText('NC', x, chart.scales.y.getPixelForValue(max) - 5); lastLabelIdx = i; }
@@ -488,6 +487,8 @@ function calculateRSI(prices, period = 14) {
     avgGain = ((avgGain * (period - 1)) + (d > 0 ? d : 0)) / period;
     avgLoss = ((avgLoss * (period - 1)) + (d < 0 ? -d : 0)) / period;
   }
+  // SAFETY: Prevent Division by Zero if chart is totally flat
+  if (avgLoss === 0 && avgGain === 0) return 50;
   return avgLoss === 0 ? 100 : 100 - (100 / (1 + (avgGain / avgLoss)));
 }
 
@@ -543,17 +544,17 @@ function updateLiveChart(days, btnElement) {
 
   const latestPrices = globalLiveData.map(d => d.nav);
   const lastNav = latestPrices[latestPrices.length - 1];
-  const lastDate = globalLiveData[globalLiveData.length - 1].date; // NEW: Get Date
+  const lastDate = globalLiveData[globalLiveData.length - 1].date; 
   const lastWma = calculateWMA(latestPrices, 20);
-  const prevNavVal = latestPrices[latestPrices.length - 2];
-  const prevWmaVal = calculateWMA(latestPrices.slice(0, -1), 20);
+  const prevNavVal = latestPrices.length > 1 ? latestPrices[latestPrices.length - 2] : null;
+  const prevWmaVal = latestPrices.length > 1 ? calculateWMA(latestPrices.slice(0, -1), 20) : null;
 
   const lastDRsi = calculateRSI(latestPrices, 14);
   const lastWRsi = calculateRSI(latestPrices.filter((_, i) => i % 5 === 0), 14);
   const lastRegime = lastWRsi >= 50 ? 'A' : (lastWRsi >= 40 ? 'B' : 'C');
   const lastDelta = lastDRsi - lastWRsi;
 
-  document.getElementById('liveNavDate').textContent = `NAV (${lastDate})`; // UPDATED DASHBOARD
+  document.getElementById('liveNavDate').textContent = `NAV (${lastDate})`; 
   document.getElementById('liveNav').textContent = `₹${lastNav.toFixed(2)}`;
   
   const dRsiEl = document.getElementById('liveDRsi');
@@ -568,7 +569,6 @@ function updateLiveChart(days, btnElement) {
   regEl.textContent = `Regime ${lastRegime}`;
   regEl.className = 'ind-val ' + (lastRegime === 'A' ? 'reg-A' : (lastRegime === 'B' ? 'reg-B' : 'reg-C'));
 
-  // PC/NC ENGINE: 50 DAY LOOKBACK
   let pcAlert = false, ncAlert = false;
   if(latestPrices.length >= 56) {
       let box = latestPrices.slice(-6, -1);
@@ -580,7 +580,7 @@ function updateLiveChart(days, btnElement) {
       
       let isTight = (boxMax - boxMin) / boxMin <= 0.02; 
       let nearWma = boxWma ? (Math.abs(boxMin - boxWma) / boxWma <= 0.04) : false; 
-      let isDeclining = preBoxMax > boxMax * 1.02; // 2% fall over last 50 days
+      let isDeclining = preBoxMax > boxMax * 1.02; 
       
       if (isTight && nearWma && isDeclining) {
           if (lastNav > boxMax) pcAlert = true;
@@ -607,7 +607,7 @@ function updateLiveChart(days, btnElement) {
       if (pcAlert) { alertText = "🟢 BUY SIGNAL: PC BREAKOUT"; alertClass = "alert-buy"; }
       else if (lastDRsi < 40) { alertText = "🟢 BUY SIGNAL: OVERSOLD (RSI < 40)"; alertClass = "alert-buy"; }
       else if (lastDelta < -15) { alertText = "🟢 BUY SIGNAL: SLINGSHOT (Delta < -15)"; alertClass = "alert-buy"; }
-      else if (prevWmaVal && prevNavVal < prevWmaVal && lastNav > lastWma) { alertText = "🟢 BUY SIGNAL: WMA RECLAIM"; alertClass = "alert-buy"; }
+      else if (prevWmaVal !== null && prevNavVal !== null && prevNavVal < prevWmaVal && lastNav > lastWma) { alertText = "🟢 BUY SIGNAL: WMA RECLAIM"; alertClass = "alert-buy"; }
   }
   if (!alertText && lastDelta > 15) { alertText = "🟠 TAKE PROFIT: OVERHEATED"; alertClass = "alert-profit"; }
 
@@ -617,9 +617,9 @@ function updateLiveChart(days, btnElement) {
   const deltaData = [], deltaColors = [], wmaRegimes = [];
   for(let i=0; i<dataSlice.length; i++) {
       const endIdx = globalLiveData.length - dataSlice.length + i;
-      const prices = globalLiveData.slice(0, endIdx + 1).map(h => h.nav);
-      const drsi = calculateRSI(prices, 14);
-      const wrsi = calculateRSI(prices.filter((_, idx) => idx % 5 === 0), 14);
+      const slicePrices = globalLiveData.slice(0, endIdx + 1).map(h => h.nav);
+      const drsi = calculateRSI(slicePrices, 14);
+      const wrsi = calculateRSI(slicePrices.filter((_, idx) => idx % 5 === 0), 14);
       const d = drsi - wrsi;
       deltaData.push(d);
       deltaColors.push(i===0 ? (d >= 0 ? '#10b981' : '#ef4444') : (d > deltaData[i-1] ? '#10b981' : '#ef4444'));
@@ -791,7 +791,7 @@ function updateDisplay() {
       
       let isTight = (boxMax - boxMin) / boxMin <= 0.02; 
       let nearWma = boxWma ? (Math.abs(boxMin - boxWma) / boxWma <= 0.04) : false; 
-      let isDeclining = preBoxMax > boxMax * 1.02; // 2% fall over last 50 days
+      let isDeclining = preBoxMax > boxMax * 1.02;
       
       if (isTight && nearWma && isDeclining) {
           if (currentNav > boxMax) pcAlert = true;
@@ -834,7 +834,6 @@ function updateDisplay() {
       else if (regimeUpgrade) { 
           alertText = `🟢 REGIME UPGRADE: ${prevRegime} ➔ ${currentRegime}`; 
           alertClass = "alert-buy"; 
-          // MEGA ALERT TRIGGER
           if(currentRegime === 'A') {
               alertText = `🟢 REGIME A RESTORED: BULL TREND`;
               alertClass = "alert-buy alert-mega";
@@ -844,7 +843,7 @@ function updateDisplay() {
           if (pcAlert) { alertText = "🟢 BUY SIGNAL: PC BREAKOUT"; alertClass = "alert-buy"; }
           else if (dRsi < 40) { alertText = "🟢 BUY SIGNAL: OVERSOLD (RSI < 40)"; alertClass = "alert-buy"; }
           else if (delta < -15) { alertText = "🟢 BUY SIGNAL: SLINGSHOT (Delta < -15)"; alertClass = "alert-buy"; }
-          else if (prevWma && prevNav < prevWma && currentNav > currentWma) { alertText = "🟢 BUY SIGNAL: WMA RECLAIM"; alertClass = "alert-buy"; }
+          else if (prevWma !== null && prevNav !== null && prevNav < prevWma && currentNav > currentWma) { alertText = "🟢 BUY SIGNAL: WMA RECLAIM"; alertClass = "alert-buy"; }
       }
       
       if (!alertText && delta > 15) { alertText = "🟠 TAKE PROFIT (DELTA > 15)"; alertClass = "alert-profit"; }
@@ -855,7 +854,6 @@ function updateDisplay() {
 
   prevRegime = currentRegime; prevNav = currentNav; prevWma = currentWma;
 
-  // Button UI state updates
   const btnBuy10 = document.getElementById('btnBuy10');
   const btnBuy25 = document.getElementById('btnBuy25');
   const btnBuy50 = document.getElementById('btnBuy50');
@@ -873,7 +871,6 @@ function updateDisplay() {
 
   sellBtns.forEach(btn => {
       let isDisabled = flexiLocked;
-      // Allow selling if TSL hit, or if Regime is C
       if ((tslHit || currentRegime === 'C') && (btn.id === 'btnTsl' || btn.id === 'btnRegime' || btn.id === 'btnAll')) isDisabled = false;
       if(isDisabled) { btn.disabled = true; if(btn.id === 'btnAll') btn.textContent = `LOCK (${220 - (dayNum - firstBuyDay)}d)`; } 
       else { btn.disabled = false; if(btn.id === 'btnAll') btn.textContent = `SELL ALL`; }
