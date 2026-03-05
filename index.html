@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MF Lie Detector - Pro Mastery v5.5</title>
+<title>MF Lie Detector - Pro Mastery v5.6</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
@@ -57,7 +57,6 @@
   .psy-box { padding: 8px 12px; background: var(--surface); flex-grow: 1; overflow-y: auto; }
   .psy-logic { font-size: 0.85rem; color: var(--text); font-style: italic; border-left: 2px solid var(--accent); padding-left: 10px; margin-top: 6px; }
 
-  /* UPDATED ACTION BAR CSS: 4 Columns, 2 Rows */
   .action-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--surface2); border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 8px; z-index: 200; }
   .btn { font-family: var(--mono); font-weight: 400; font-size: 0.7rem; padding: 10px 2px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; text-transform: uppercase; text-align: center; }
   .btn:disabled { opacity: 0.4; cursor: not-allowed; border-color: var(--border) !important; color: var(--muted) !important; background: transparent !important; }
@@ -116,8 +115,8 @@
 <div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.7rem; margin-top: 10px;" id="ovTxt">SYNCING...</div></div>
 
 <div id="setupScreen">
-  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v5.5</h1>
-  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Declining PC Logic & UI Grid</p>
+  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v5.6</h1>
+  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Wave Simulator Edition</p>
   
   <div class="fund-grid" id="fundGrid">
     <div class="fund-box" onclick="selectAMC('HDFC', this)">HDFC</div>
@@ -133,9 +132,10 @@
     <label for="flexiLockToggle" style="cursor: pointer;">Enable "Flexicap Lock" Rule (220 days)</label>
   </div>
 
-  <div style="display: flex; gap: 10px; width: 100%; max-width: 350px;">
-    <button class="btn btn-buy" style="flex: 2; font-weight: 700; border: 1px solid var(--accent);" onclick="initGame()">Start Sim</button>
-    <button class="btn btn-live" style="flex: 1;" onclick="initLive()">Live Chart</button>
+  <div style="display: flex; gap: 8px; width: 100%; max-width: 350px;">
+    <button class="btn" style="flex: 1; font-weight: 700; border: 1px solid var(--accent); color: var(--accent);" onclick="initGame('random')">Simulator</button>
+    <button class="btn" style="flex: 1; font-weight: 700; border: 1px solid var(--accent2); color: var(--accent2);" onclick="initGame('wave')">Wave Simulator</button>
+    <button class="btn" style="flex: 1; border: 1px solid var(--muted); color: var(--text);" onclick="initLive()">Live Chart</button>
   </div>
 </div>
 
@@ -225,7 +225,7 @@
 
 <div id="gameUI" style="display: none; height: 100vh; flex-direction: column;">
   <header class="app-header">
-    <div class="logo">LIE DETECTOR V5.5</div>
+    <div class="logo">LIE DETECTOR V5.6</div>
     <div style="display: flex; gap: 8px; align-items: center;">
       <button class="btn-log" onclick="showLog()">LOG</button>
       <button class="btn-review" onclick="endAndReview()">END & REVIEW</button>
@@ -561,7 +561,7 @@ function updateLiveChart(days, btnElement) {
       
       let isTight = (boxMax - boxMin) / boxMin <= 0.02; 
       let nearWma = Math.abs(boxMin - boxWma) / boxWma <= 0.04; 
-      let isDeclining = preBoxMax > boxMax * 1.015; // Requires prior peak to be at least 1.5% higher
+      let isDeclining = preBoxMax > boxMax * 1.015; // Ensures price actually fell to support
       
       if (isTight && nearWma && isDeclining) {
           if (lastNav > boxMax) pcAlert = true;
@@ -661,13 +661,33 @@ function resetLiveZoom() { if(liveChart) liveChart.resetZoom(); }
 function closeLive() { document.getElementById('liveModal').style.display = 'none'; document.getElementById('setupScreen').style.display = 'flex'; }
 
 // --- GAME ENGINE ---
-async function initGame() {
+async function initGame(mode) {
   document.getElementById('ovTxt').textContent = "SYNCING SIMULATION...";
   fullHistory = await fetchFundData();
   if(!fullHistory.length) return;
-  simStartIdx = Math.floor(Math.random() * (fullHistory.length - 450)) + 200;
-  currentIdx = simStartIdx;
   
+  if (mode === 'wave') {
+      // Find ~Sept 1, 2024
+      let waveIdx = fullHistory.findIndex(item => {
+          let parts = item.date.split('-');
+          if(parts.length === 3) {
+              let m = parseInt(parts[1], 10);
+              let y = parseInt(parts[2], 10);
+              return y > 2024 || (y === 2024 && m >= 9);
+          }
+          return false;
+      });
+      if (waveIdx !== -1 && (fullHistory.length - waveIdx) > 50) {
+          simStartIdx = waveIdx;
+      } else {
+          alert("Not enough post-Sept 2024 data for this fund. Falling back to random.");
+          simStartIdx = Math.floor(Math.random() * (fullHistory.length - 450)) + 200;
+      }
+  } else {
+      simStartIdx = Math.floor(Math.random() * (fullHistory.length - 450)) + 200;
+  }
+  
+  currentIdx = simStartIdx;
   tradeLog = []; cash = 100000; tranches = []; prevRegime = null; prevNav = null; prevWma = null;
   totalTaxPaid = 0; peakNetWorth = 100000; maxDrawdown = 0; buyLockoutTimer = 0;
 
