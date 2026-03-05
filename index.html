@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MF Lie Detector - Pro Mastery v5.4</title>
+<title>MF Lie Detector - Pro Mastery v5.5</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
@@ -57,13 +57,15 @@
   .psy-box { padding: 8px 12px; background: var(--surface); flex-grow: 1; overflow-y: auto; }
   .psy-logic { font-size: 0.85rem; color: var(--text); font-style: italic; border-left: 2px solid var(--accent); padding-left: 10px; margin-top: 6px; }
 
-  .action-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--surface2); border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; padding: 8px; z-index: 200; }
-  .btn { font-family: var(--mono); font-weight: 400; font-size: 0.85rem; padding: 10px 2px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; text-transform: uppercase; text-align: center; }
+  /* UPDATED ACTION BAR CSS: 4 Columns, 2 Rows */
+  .action-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--surface2); border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 8px; z-index: 200; }
+  .btn { font-family: var(--mono); font-weight: 400; font-size: 0.7rem; padding: 10px 2px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; text-transform: uppercase; text-align: center; }
   .btn:disabled { opacity: 0.4; cursor: not-allowed; border-color: var(--border) !important; color: var(--muted) !important; background: transparent !important; }
   .btn-buy { border-color: var(--accent); color: var(--accent); background: transparent; }
   .btn-hold { border-color: var(--muted); color: var(--muted); background: transparent; }
   .btn-sell { border-color: var(--red); color: var(--red); background: rgba(239, 68, 68, 0.05); }
   .btn-profit { border-color: var(--accent2); color: var(--accent2); background: rgba(245, 158, 11, 0.05); }
+  
   .btn-log { background: var(--surface2); color: var(--text); border: 1px solid var(--border); padding: 4px 8px; font-size: 0.7rem; font-family: var(--mono); cursor: pointer; border-radius: 4px; }
   .btn-review { background: rgba(251, 191, 36, 0.1); color: var(--gold); border: 1px solid var(--gold); padding: 4px 8px; font-size: 0.7rem; font-family: var(--mono); cursor: pointer; border-radius: 4px; font-weight: bold; }
 
@@ -114,8 +116,8 @@
 <div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.7rem; margin-top: 10px;" id="ovTxt">SYNCING...</div></div>
 
 <div id="setupScreen">
-  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v5.4</h1>
-  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">PC Breakout Engine & Scout Entry</p>
+  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v5.5</h1>
+  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Declining PC Logic & UI Grid</p>
   
   <div class="fund-grid" id="fundGrid">
     <div class="fund-box" onclick="selectAMC('HDFC', this)">HDFC</div>
@@ -223,7 +225,7 @@
 
 <div id="gameUI" style="display: none; height: 100vh; flex-direction: column;">
   <header class="app-header">
-    <div class="logo">LIE DETECTOR V5.4</div>
+    <div class="logo">LIE DETECTOR V5.5</div>
     <div style="display: flex; gap: 8px; align-items: center;">
       <button class="btn-log" onclick="showLog()">LOG</button>
       <button class="btn-review" onclick="endAndReview()">END & REVIEW</button>
@@ -267,12 +269,14 @@
 
   <footer class="action-bar">
     <button class="btn btn-buy" id="btnBuy10" onclick="trade('BUY10')">Buy 10%</button>
-    <button class="btn btn-buy" id="btnBuy" onclick="trade('BUY25')">Buy 25%</button>
     <button class="btn btn-hold" onclick="nextDay()">Hold</button>
+    <button class="btn btn-buy" id="btnBuy25" onclick="trade('BUY25')">Buy 25%</button>
+    <button class="btn btn-buy" id="btnBuy50" onclick="trade('BUY50')">Buy 50%</button>
+
     <button class="btn btn-profit" id="btnProfit" onclick="trade('SELL_PROFIT')">Profit</button>
     <button class="btn btn-sell" id="btnTsl" onclick="trade('SELL_TSL')">TSL</button>
     <button class="btn btn-sell" id="btnRegime" onclick="trade('SELL_REGIME')">Regime</button>
-    <button class="btn btn-sell" id="btnAll" style="grid-column: span 3;" onclick="trade('SELLALL')">Sell All Units (Exit)</button>
+    <button class="btn btn-sell" id="btnAll" onclick="trade('SELLALL')">Sell All</button>
   </footer>
 </div>
 
@@ -432,6 +436,20 @@ const universalAnnotationsPlugin = {
       });
     }
 
+    if(wma.length > 0) {
+      ctx.font = '8px "Space Mono"'; ctx.textAlign = 'center'; ctx.setLineDash([]); 
+      let lastLabelIdx = -10;
+      for(let i = 5; i < data.length; i++) {
+        if(i - lastLabelIdx < 8) continue; 
+        let window = data.slice(i-5, i+1); let max = Math.max(...window); let min = Math.min(...window);
+        if((max - min) / min < 0.015 && wma[i] != null) {
+          let x = meta.data[i-2].x; 
+          if(data[i] > wma[i]) { ctx.fillStyle = '#10b981'; ctx.fillText('PC', x, chart.scales.y.getPixelForValue(min) + 12); lastLabelIdx = i; } 
+          else if(data[i] < wma[i]) { ctx.fillStyle = '#ef4444'; ctx.fillText('NC', x, chart.scales.y.getPixelForValue(max) - 5); lastLabelIdx = i; }
+        }
+      }
+    }
+
     if(chart.canvas.id === 'liveChartCanvas') {
         const lastVal = data[data.length - 1];
         const lastYPos = chart.scales.y.getPixelForValue(lastVal);
@@ -531,16 +549,21 @@ function updateLiveChart(days, btnElement) {
   regEl.textContent = `Regime ${lastRegime}`;
   regEl.className = 'ind-val ' + (lastRegime === 'A' ? 'reg-A' : (lastRegime === 'B' ? 'reg-B' : 'reg-C'));
 
-  // PC & NC Breakout Math
+  // DECLINING PC/NC Breakout Math
   let pcAlert = false, ncAlert = false;
-  if(latestPrices.length >= 7) {
+  if(latestPrices.length >= 15) {
       let box = latestPrices.slice(-6, -1);
       let boxMax = Math.max(...box);
       let boxMin = Math.min(...box);
+      let preBox = latestPrices.slice(-15, -6);
+      let preBoxMax = Math.max(...preBox);
       let boxWma = calculateWMA(latestPrices.slice(0, -1), 20); 
-      let isTight = (boxMax - boxMin) / boxMin <= 0.02; // Tight WMA 2% Box
-      let nearWma = Math.abs(boxMin - boxWma) / boxWma <= 0.04; // Near WMA Support
-      if (isTight && nearWma) {
+      
+      let isTight = (boxMax - boxMin) / boxMin <= 0.02; 
+      let nearWma = Math.abs(boxMin - boxWma) / boxWma <= 0.04; 
+      let isDeclining = preBoxMax > boxMax * 1.015; // Requires prior peak to be at least 1.5% higher
+      
+      if (isTight && nearWma && isDeclining) {
           if (lastNav > boxMax) pcAlert = true;
           if (lastNav < boxMin) ncAlert = true;
       }
@@ -700,16 +723,21 @@ function updateDisplay() {
   let lockEnabled = document.getElementById('flexiLockToggle').checked;
   let flexiLocked = lockEnabled && isFlexi && firstBuyDay !== null && (dayNum - firstBuyDay) < 220;
 
-  // PC & NC Breakout Math for Sim
+  // DECLINING PC/NC Breakout Math for Sim
   let pcAlert = false, ncAlert = false;
-  if(prices.length >= 7) {
+  if(prices.length >= 15) {
       let box = prices.slice(-6, -1);
       let boxMax = Math.max(...box);
       let boxMin = Math.min(...box);
+      let preBox = prices.slice(-15, -6);
+      let preBoxMax = Math.max(...preBox);
       let boxWma = calculateWMA(prices.slice(0, -1), 20); 
+      
       let isTight = (boxMax - boxMin) / boxMin <= 0.02; 
       let nearWma = Math.abs(boxMin - boxWma) / boxWma <= 0.04; 
-      if (isTight && nearWma) {
+      let isDeclining = preBoxMax > boxMax * 1.015;
+      
+      if (isTight && nearWma && isDeclining) {
           if (currentNav > boxMax) pcAlert = true;
           if (currentNav < boxMin) ncAlert = true;
       }
@@ -744,16 +772,20 @@ function updateDisplay() {
 
   prevRegime = currentRegime; prevNav = currentNav; prevWma = currentWma;
 
-  const btnBuy25 = document.getElementById('btnBuy');
+  // Button UI state updates
   const btnBuy10 = document.getElementById('btnBuy10');
+  const btnBuy25 = document.getElementById('btnBuy25');
+  const btnBuy50 = document.getElementById('btnBuy50');
   const sellBtns = [document.getElementById('btnProfit'), document.getElementById('btnTsl'), document.getElementById('btnRegime'), document.getElementById('btnAll')];
   
   if(buyLockoutTimer > 0) { 
-      btnBuy25.disabled = true; btnBuy25.textContent = `COOL OFF (${buyLockoutTimer})`; btnBuy25.style.borderColor = 'var(--border)'; btnBuy25.style.color = 'var(--muted)'; 
       btnBuy10.disabled = true; btnBuy10.textContent = `COOL (${buyLockoutTimer})`; btnBuy10.style.borderColor = 'var(--border)'; btnBuy10.style.color = 'var(--muted)'; 
+      btnBuy25.disabled = true; btnBuy25.textContent = `COOL (${buyLockoutTimer})`; btnBuy25.style.borderColor = 'var(--border)'; btnBuy25.style.color = 'var(--muted)'; 
+      btnBuy50.disabled = true; btnBuy50.textContent = `COOL (${buyLockoutTimer})`; btnBuy50.style.borderColor = 'var(--border)'; btnBuy50.style.color = 'var(--muted)'; 
   } else { 
-      btnBuy25.disabled = false; btnBuy25.textContent = `BUY 25%`; btnBuy25.style.borderColor = 'var(--accent)'; btnBuy25.style.color = 'var(--accent)'; 
       btnBuy10.disabled = false; btnBuy10.textContent = `BUY 10%`; btnBuy10.style.borderColor = 'var(--accent)'; btnBuy10.style.color = 'var(--accent)'; 
+      btnBuy25.disabled = false; btnBuy25.textContent = `BUY 25%`; btnBuy25.style.borderColor = 'var(--accent)'; btnBuy25.style.color = 'var(--accent)'; 
+      btnBuy50.disabled = false; btnBuy50.textContent = `BUY 50%`; btnBuy50.style.borderColor = 'var(--accent)'; btnBuy50.style.color = 'var(--accent)'; 
   }
 
   sellBtns.forEach(btn => {
@@ -858,12 +890,15 @@ function trade(action) {
   const dayNum = currentIdx - simStartIdx;
   let totalUnits = tranches.reduce((sum, t) => sum + t.units, 0);
 
-  if (action === 'BUY25') { 
+  if (action === 'BUY10') { 
+    let amt = cash * 0.10; 
+    if(amt > 10) { tranches.push({ day: dayNum, units: amt / nav, price: nav }); cash -= amt; tradeLog.push({ day: dayNum, action: 'BUY (10%)', nav: nav, units: amt / nav, tax: 0, regime: currentRegimeLog }); }
+  } else if (action === 'BUY25') { 
     let amt = cash * 0.25; 
     if(amt > 10) { tranches.push({ day: dayNum, units: amt / nav, price: nav }); cash -= amt; tradeLog.push({ day: dayNum, action: 'BUY (25%)', nav: nav, units: amt / nav, tax: 0, regime: currentRegimeLog }); }
-  } else if (action === 'BUY10') { 
-    let amt = cash * 0.10; 
-    if(amt > 10) { tranches.push({ day: dayNum, units: amt / nav, price: nav }); cash -= amt; tradeLog.push({ day: dayNum, action: 'BUY (SCOUT)', nav: nav, units: amt / nav, tax: 0, regime: currentRegimeLog }); }
+  } else if (action === 'BUY50') { 
+    let amt = cash * 0.50; 
+    if(amt > 10) { tranches.push({ day: dayNum, units: amt / nav, price: nav }); cash -= amt; tradeLog.push({ day: dayNum, action: 'BUY (50%)', nav: nav, units: amt / nav, tax: 0, regime: currentRegimeLog }); }
   } else if (action === 'SELL_PROFIT') {
     let totalCost = tranches.reduce((sum, t) => sum + (t.units * t.price), 0);
     let profit = (totalUnits * nav) - totalCost;
