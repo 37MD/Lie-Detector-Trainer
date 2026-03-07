@@ -129,7 +129,7 @@
 
 <div id="setupScreen">
   <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v6.18</h1>
-  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Single-Beam Laser Alignment</p>
+  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Tooltip Clearance Patch</p>
   
   <div class="fund-grid" id="fundGrid">
     <div class="fund-box" onclick="selectAMC('HDFC', this)">HDFC</div>
@@ -422,19 +422,18 @@ const universalAnnotationsPlugin = {
     if(!meta.data || meta.data.length === 0) return;
 
     let isLive = chartInstance.canvas.id.includes('live');
-    let topChart = isLive ? (typeof liveChart !== 'undefined' ? liveChart : null) : (typeof chart !== 'undefined' ? chart : null);
-    let btmChart = isLive ? (typeof liveDeltaChart !== 'undefined' ? liveDeltaChart : null) : (typeof deltaChart !== 'undefined' ? deltaChart : null);
+    let topChart = isLive ? (typeof liveChart !== 'undefined' ? liveChart : null) : (typeof window.chart !== 'undefined' ? window.chart : null);
+    let btmChart = isLive ? (typeof liveDeltaChart !== 'undefined' ? liveDeltaChart : null) : (typeof window.deltaChart !== 'undefined' ? window.deltaChart : null);
 
-    // FIX: Grab exactly ONE pixel X-coordinate from whichever chart the user is touching
-    let activeX = null;
+    let activeIdx = null;
     if (topChart && topChart.tooltip && topChart.tooltip._active && topChart.tooltip._active.length) {
-        activeX = topChart.tooltip._active[0].element.x;
+        activeIdx = topChart.tooltip._active[0].index;
     } else if (btmChart && btmChart.tooltip && btmChart.tooltip._active && btmChart.tooltip._active.length) {
-        activeX = btmChart.tooltip._active[0].element.x;
+        activeIdx = btmChart.tooltip._active[0].index;
     }
 
-    // DRAW THE PERFECTLY STRAIGHT LASER SIGHT
-    if (activeX !== null) {
+    if (activeIdx !== null && meta.data[activeIdx]) {
+       let activeX = meta.data[activeIdx].x;
        ctx.save();
        ctx.beginPath();
        ctx.setLineDash([3, 3]);
@@ -677,18 +676,14 @@ function updateLiveChart(days, btnElement) {
         plugins: { 
             legend: { display: false },
             tooltip: { 
-                caretPadding: 15, 
+                caretPadding: 25, 
+                yAlign: 'bottom',
                 callbacks: { afterBody: function(items) { if(!items.length) return ''; let idx = items[0].dataIndex; return ['----------------', `Regime : ${wmaRegimes[idx]}`, `D-RSI  : ${Math.round(drsiData[idx])}`, `W-RSI  : ${Math.round(wrsiData[idx])}`]; } } 
             },
             zoom: { zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }, pan: { enabled: true, mode: 'x' } }
         }, 
-        // ALIGNMENT FIX: Strictly lock the padding on both charts
-        layout: { padding: { top: 15, bottom: 5, left: 20, right: 5 } }, 
-        scales: { 
-            x: { display: false, offset: true }, 
-            // ALIGNMENT FIX: Add a ghost Y-Axis so both charts have exact same layout width
-            y: { position: 'right', display: true, grid: { display: false }, border: { display: false }, ticks: { display: false }, afterFit: function(scale) { scale.width = 45; } } 
-        } 
+        layout: { padding: { top: 15, bottom: 5, left: 5, right: 5 } }, 
+        scales: { x: { display: false, offset: true }, y: { display: false } } 
     }
   });
 
@@ -710,17 +705,15 @@ function updateLiveChart(days, btnElement) {
           onHover: (e) => syncCharts(liveDeltaChart, liveChart, e), 
           plugins: { 
               legend: { display: false },
-              tooltip: { caretPadding: 15 }
+              tooltip: { caretPadding: 25, yAlign: 'bottom' }
           },
-          // ALIGNMENT FIX: Locked to match the top chart exactly
-          layout: { padding: { top: 5, bottom: 5, left: 20, right: 5 } }, 
+          layout: { padding: { top: 5, bottom: 5, left: 5, right: 5 } }, 
           scales: {
               x: { display: true, offset: true, grid: { display: false }, ticks: { align: 'inner', maxRotation: 0, maxTicksLimit: 6, color: '#94a3b8', font: { size: 9, family: '"Space Mono"' } } },
-              y: { position: 'right', display: true, grid: { color: 'rgba(30, 41, 59, 0.5)' }, border: { dash: [2,4] }, min: -35, max: 35, ticks: { display: true, color: '#94a3b8', font: { size: 8, family: '"Space Mono"' }, maxTicksLimit: 5 }, afterFit: function(scale) { scale.width = 45; } }
+              y: { display: false }
           }
       }
   });
-  setTimeout(() => { if(liveChart) liveChart.resize(); if(liveDeltaChart) liveDeltaChart.resize(); }, 50);
 }
 
 function resetLiveZoom() { if(liveChart) liveChart.resetZoom(); }
@@ -963,14 +956,15 @@ function updateDisplay() {
         plugins: { 
             legend: { display: false },
             tooltip: { 
-                caretPadding: 15,
+                caretPadding: 25,
+                yAlign: 'bottom',
                 callbacks: { afterBody: function(items) { if(!items.length) return ''; let idx = items[0].dataIndex; return ['----------------', `Regime : ${wmaRegimes[idx]}`, `D-RSI  : ${Math.round(drsiData[idx])}`, `W-RSI  : ${Math.round(wrsiData[idx])}`]; } }
             }
         }, 
-        layout: { padding: { top: 15, bottom: 5, left: 20, right: 5 } }, 
+        layout: { padding: { top: 15, bottom: 5, left: 5, right: 5 } }, 
         scales: { 
             x: { display: false, offset: true }, 
-            y: { position: 'right', display: true, grid: { display: false }, border: { display: false }, ticks: { display: false }, afterFit: function(scale) { scale.width = 45; } } 
+            y: { display: false } 
         } 
     }
   });
@@ -994,16 +988,15 @@ function updateDisplay() {
           onHover: (e) => syncCharts(deltaChart, chart, e),
           plugins: { 
               legend: { display: false },
-              tooltip: { caretPadding: 15 }
+              tooltip: { caretPadding: 25, yAlign: 'bottom' }
           }, 
-          layout: { padding: { top: 5, bottom: 5, left: 20, right: 5 } }, 
+          layout: { padding: { top: 5, bottom: 5, left: 5, right: 5 } }, 
           scales: { 
               x: { display: false, offset: true }, 
-              y: { position: 'right', display: true, grid: { color: 'rgba(30, 41, 59, 0.5)' }, border: { dash: [2,4] }, min: -35, max: 35, ticks: { display: true, color: '#94a3b8', font: { size: 8, family: '"Space Mono"' }, maxTicksLimit: 5 }, afterFit: function(scale) { scale.width = 45; } } 
+              y: { display: false } 
           } 
       }
   });
-  setTimeout(() => { if(chart) chart.resize(); if(deltaChart) deltaChart.resize(); }, 50);
 }
 
 function showLog() {
