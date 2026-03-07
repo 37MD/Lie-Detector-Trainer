@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MF Lie Detector - Pro Mastery v6.14</title>
+<title>MF Lie Detector - Pro Mastery v6.15</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
@@ -84,7 +84,7 @@
   .custom-inputs { display: flex; gap: 10px; width: 100%; max-width: 350px; margin-bottom: 1rem; }
   .c-input-box { flex: 1; background: var(--surface2); padding: 6px; border-radius: 6px; border: 1px solid var(--border); }
   .c-label { font-size: 0.65rem; color: var(--muted); font-family: var(--mono); display: block; margin-bottom: 2px; }
-  .c-num { width: 100%; background: transparent; border: none; font-weight: bold; font-size: 1rem; font-family: var(--mono); outline: none; text-align: center; }
+  .c-num { width: 100%; background: transparent; border: none; font-weight: bold; font-size: 1rem; font-family: var(--mono); outline: none; text-align: center; color: white;}
 
   .toggle-container { margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; font-size: 0.75rem; color: var(--muted); background: var(--surface2); padding: 8px; border-radius: 6px; border: 1px solid var(--border); }
   .toggle-check { accent-color: var(--accent); transform: scale(1.2); cursor: pointer; }
@@ -128,8 +128,8 @@
 <div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.7rem; margin-top: 10px;" id="ovTxt">SYNCING...</div></div>
 
 <div id="setupScreen">
-  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v6.14</h1>
-  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Perfect Alignment & Smart Tooltips</p>
+  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v6.15</h1>
+  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Perfect Axis Alignment & Scopes</p>
   
   <div class="fund-grid" id="fundGrid">
     <div class="fund-box" onclick="selectAMC('HDFC', this)">HDFC</div>
@@ -251,7 +251,7 @@
 
 <div id="gameUI" style="display: none; height: 100vh; flex-direction: column;">
   <header class="app-header">
-    <div class="logo">LIE DETECTOR V6.14</div>
+    <div class="logo">LIE DETECTOR V6.15</div>
     <div style="display: flex; gap: 8px; align-items: center;">
       <button class="btn-log" onclick="showLog()">LOG</button>
       <button class="btn-review" onclick="endAndReview()">END & REVIEW</button>
@@ -422,8 +422,8 @@ const universalAnnotationsPlugin = {
     if(!meta.data || meta.data.length === 0) return;
 
     let isLive = chartInstance.canvas.id.includes('live');
-    let topChart = isLive ? (typeof liveChart !== 'undefined' ? liveChart : null) : (typeof chart !== 'undefined' ? chart : null);
-    let btmChart = isLive ? (typeof liveDeltaChart !== 'undefined' ? liveDeltaChart : null) : (typeof deltaChart !== 'undefined' ? deltaChart : null);
+    let topChart = isLive ? (typeof liveChart !== 'undefined' ? liveChart : null) : (typeof window.chart !== 'undefined' ? window.chart : null);
+    let btmChart = isLive ? (typeof liveDeltaChart !== 'undefined' ? liveDeltaChart : null) : (typeof window.deltaChart !== 'undefined' ? window.deltaChart : null);
 
     let activeIdx = null;
     if (topChart && topChart.tooltip && topChart.tooltip._active && topChart.tooltip._active.length) {
@@ -432,6 +432,7 @@ const universalAnnotationsPlugin = {
         activeIdx = btmChart.tooltip._active[0].index;
     }
 
+    // DRAW THE CROSSHAIR LASER
     if (activeIdx !== null && meta.data[activeIdx]) {
        let activeX = meta.data[activeIdx].x;
        ctx.save();
@@ -676,14 +677,17 @@ function updateLiveChart(days, btnElement) {
         plugins: { 
             legend: { display: false },
             tooltip: { 
-                caretPadding: 20, 
-                yAlign: 'bottom', // Pushes tooltip up
+                caretPadding: 10,
                 callbacks: { afterBody: function(items) { if(!items.length) return ''; let idx = items[0].dataIndex; return ['----------------', `Regime : ${wmaRegimes[idx]}`, `D-RSI  : ${Math.round(drsiData[idx])}`, `W-RSI  : ${Math.round(wrsiData[idx])}`]; } } 
             },
             zoom: { zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }, pan: { enabled: true, mode: 'x' } }
         }, 
-        layout: { padding: { top: 15, bottom: 5, left: 5, right: 5 } }, 
-        scales: { x: { display: false, offset: true }, y: { grid: { color: '#1e293b' } } } // ADDED OFFSET: TRUE
+        layout: { padding: { top: 15, bottom: 5, left: 5, right: 0 } }, 
+        scales: { 
+            x: { display: false, offset: true }, 
+            // THE GHOST AXIS: Forces the top chart width to match the bottom chart perfectly
+            y: { position: 'right', grid: { color: '#1e293b' }, ticks: { display: false }, afterFit: function(scale) { scale.width = 40; } } 
+        } 
     }
   });
 
@@ -705,14 +709,17 @@ function updateLiveChart(days, btnElement) {
           onHover: (e) => syncCharts(liveDeltaChart, liveChart, e), 
           plugins: { 
               legend: { display: false },
-              tooltip: { caretPadding: 20, yAlign: 'bottom' } // PUSHES TOOLTIP UP
+              tooltip: { caretPadding: 10 }
           },
+          layout: { padding: { top: 5, bottom: 5, left: 5, right: 0 } }, 
           scales: {
               x: { display: true, offset: true, grid: { display: false }, ticks: { maxTicksLimit: 6, color: '#94a3b8', font: { size: 9, family: '"Space Mono"' } } },
-              y: { grid: { color: 'rgba(30, 41, 59, 0.5)' }, border: { dash: [2,4] }, min: -35, max: 35, ticks: { display: false } }
+              // LOCKED WIDTH AXIS
+              y: { position: 'right', grid: { color: 'rgba(30, 41, 59, 0.5)' }, border: { dash: [2,4] }, min: -35, max: 35, ticks: { display: true, color: '#94a3b8', font: { size: 8, family: '"Space Mono"' }, maxTicksLimit: 5 }, afterFit: function(scale) { scale.width = 40; } }
           }
       }
   });
+  setTimeout(() => { if(liveChart) liveChart.resize(); if(liveDeltaChart) liveDeltaChart.resize(); }, 50);
 }
 
 function resetLiveZoom() { if(liveChart) liveChart.resetZoom(); }
@@ -774,6 +781,8 @@ async function initGame(mode) {
   document.getElementById('setupScreen').style.display = 'none';
   document.getElementById('gameUI').style.display = 'flex';
   updateDisplay();
+  
+  setTimeout(() => { if(chart) chart.resize(); if(deltaChart) deltaChart.resize(); }, 50);
 }
 
 function updateDisplay() {
@@ -948,19 +957,23 @@ function updateDisplay() {
       ] 
     },
     options: { 
+        animation: false,
         responsive: true, maintainAspectRatio: false, 
         interaction: { mode: 'index', intersect: false },
         onHover: (e) => syncCharts(chart, deltaChart, e),
         plugins: { 
             legend: { display: false },
             tooltip: { 
-                caretPadding: 20,
-                yAlign: 'bottom', // PUSHES TOOLTIP UP
+                caretPadding: 10,
                 callbacks: { afterBody: function(items) { if(!items.length) return ''; let idx = items[0].dataIndex; return ['----------------', `Regime : ${wmaRegimes[idx]}`, `D-RSI  : ${Math.round(drsiData[idx])}`, `W-RSI  : ${Math.round(wrsiData[idx])}`]; } }
             }
         }, 
-        layout: { padding: { top: 15, bottom: 5, left: 5, right: 5 } }, 
-        scales: { x: { display: false, offset: true }, y: { grid: { color: '#1e293b' }, ticks: { display: false } } } // ADDED OFFSET: TRUE
+        layout: { padding: { top: 15, bottom: 5, left: 5, right: 0 } }, 
+        scales: { 
+            x: { display: false, offset: true }, 
+            // GHOST AXIS: Forces alignment
+            y: { position: 'right', grid: { color: '#1e293b' }, ticks: { display: false }, afterFit: function(scale) { scale.width = 40; } } 
+        } 
     }
   });
 
@@ -977,16 +990,19 @@ function updateDisplay() {
         ]
       },
       options: { 
+          animation: false,
           responsive: true, maintainAspectRatio: false, 
           interaction: { mode: 'index', intersect: false },
           onHover: (e) => syncCharts(deltaChart, chart, e),
           plugins: { 
               legend: { display: false },
-              tooltip: { caretPadding: 20, yAlign: 'bottom' } // PUSHES TOOLTIP UP
+              tooltip: { caretPadding: 10 }
           }, 
+          layout: { padding: { top: 5, bottom: 5, left: 5, right: 0 } }, 
           scales: { 
               x: { display: false, offset: true }, 
-              y: { grid: { color: 'rgba(30, 41, 59, 0.5)' }, border: { dash: [2,4] }, min: -35, max: 35, ticks: { display: false } } 
+              // LOCKED WIDTH AXIS
+              y: { position: 'right', grid: { color: 'rgba(30, 41, 59, 0.5)' }, border: { dash: [2,4] }, min: -35, max: 35, ticks: { display: true, color: '#94a3b8', font: { size: 8, family: '"Space Mono"' }, maxTicksLimit: 5 }, afterFit: function(scale) { scale.width = 40; } } 
           } 
       }
   });
