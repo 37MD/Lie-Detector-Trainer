@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MF Lie Detector - Pro Mastery v6.7</title>
+<title>MF Lie Detector - Pro Mastery v6.6</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
@@ -117,8 +117,8 @@
 <div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.7rem; margin-top: 10px;" id="ovTxt">SYNCING...</div></div>
 
 <div id="setupScreen">
-  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v6.7</h1>
-  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Complete Cursor Sync</p>
+  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v6.6</h1>
+  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Dual-Chart Laser Active</p>
   
   <div class="fund-grid" id="fundGrid">
     <div class="fund-box" onclick="selectAMC('HDFC', this)">HDFC</div>
@@ -227,7 +227,7 @@
 
 <div id="gameUI" style="display: none; height: 100vh; flex-direction: column;">
   <header class="app-header">
-    <div class="logo">LIE DETECTOR V6.7</div>
+    <div class="logo">LIE DETECTOR V6.6</div>
     <div style="display: flex; gap: 8px; align-items: center;">
       <button class="btn-log" onclick="showLog()">LOG</button>
       <button class="btn-review" onclick="endAndReview()">END & REVIEW</button>
@@ -394,8 +394,8 @@ const universalAnnotationsPlugin = {
 
     // 1. GLOBAL LASER SIGHT (CROSSHAIR)
     let isLive = chartInstance.canvas.id.includes('live');
-    let topChart = isLive ? (typeof liveChart !== 'undefined' ? liveChart : null) : (typeof window.chart !== 'undefined' ? window.chart : null);
-    let btmChart = isLive ? (typeof liveDeltaChart !== 'undefined' ? liveDeltaChart : null) : (typeof window.deltaChart !== 'undefined' ? window.deltaChart : null);
+    let topChart = isLive ? (typeof liveChart !== 'undefined' ? liveChart : null) : (typeof chart !== 'undefined' ? chart : null);
+    let btmChart = isLive ? (typeof liveDeltaChart !== 'undefined' ? liveDeltaChart : null) : (typeof deltaChart !== 'undefined' ? deltaChart : null);
 
     let activeIdx = null;
     if (topChart && topChart.tooltip && topChart.tooltip._active && topChart.tooltip._active.length) {
@@ -510,7 +510,7 @@ function syncCharts(source, target, e) {
         target.tooltip.setActiveElements([], {});
         target.update();
     }
-    source.update(); 
+    source.update(); // Forces the laser sight to update immediately
 }
 
 // --- LIVE ENGINE ---
@@ -659,7 +659,7 @@ function updateLiveChart(days, btnElement) {
   if(liveDeltaChart) liveDeltaChart.destroy();
   liveDeltaChart = new Chart(document.getElementById('liveDeltaCanvas').getContext('2d'), {
       type: 'bar',
-      plugins: [universalAnnotationsPlugin],
+      plugins: [universalAnnotationsPlugin], // ADDED PLUGIN TO DELTA CHART
       data: { 
         labels: dataSlice.map(d => d.date), 
         datasets: [
@@ -932,7 +932,7 @@ function updateDisplay() {
   if(deltaChart) deltaChart.destroy();
   deltaChart = new Chart(document.getElementById('deltaChart').getContext('2d'), {
       type: 'bar',
-      plugins: [universalAnnotationsPlugin], // ADDED TO SIMULATOR DELTA CHART!
+      plugins: [universalAnnotationsPlugin], // ADDED PLUGIN TO DELTA CHART
       data: { 
         labels: chartData.map((_, i) => i), 
         datasets: [
