@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MF Lie Detector - Pro Mastery v6.17</title>
+<title>MF Lie Detector - Pro Mastery v6.18</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
@@ -18,19 +18,20 @@
     --gold: #fbbf24;
     --mono: 'Space Mono', monospace; --sans: 'DM Sans', sans-serif;
   }
+  html { font-size: 16px; } 
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background-color: var(--bg); color: var(--text); font-family: var(--sans); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
   canvas { touch-action: none; }
 
-  .app-header { display:flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .app-header { display:flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; }
   .logo { font-family: var(--mono); font-weight: 700; font-size: 0.85rem; color: var(--accent); }
 
-  .networth-header { display: flex; justify-content: space-around; background: var(--surface2); border-bottom: 1px solid var(--border); padding: 8px 5px; }
+  .networth-header { display: flex; justify-content: space-around; background: var(--surface2); border-bottom: 1px solid var(--border); padding: 8px 5px; flex-shrink: 0; }
   .nw-col { display: flex; flex-direction: column; align-items: center; }
   .nw-lbl { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); text-transform: uppercase; margin-bottom: 2px; }
   .nw-val { font-family: var(--mono); font-size: 1.2rem; font-weight: 400; color: var(--text); } 
 
-  #alertBanner, #liveAlertBanner { display: none; text-align: center; padding: 8px; font-family: var(--mono); font-weight: bold; font-size: 0.8rem; text-transform: uppercase; animation: pulseAlert 1.5s infinite; border-bottom: 1px solid rgba(0,0,0,0.2); }
+  #alertBanner, #liveAlertBanner { display: none; text-align: center; padding: 8px; font-family: var(--mono); font-weight: bold; font-size: 0.8rem; text-transform: uppercase; animation: pulseAlert 1.5s infinite; border-bottom: 1px solid rgba(0,0,0,0.2); flex-shrink: 0; }
   .alert-danger { background: var(--red); color: white; }
   .alert-buy { background: var(--accent); color: #000; }
   .alert-profit { background: var(--gold); color: #000; }
@@ -38,16 +39,20 @@
   
   @keyframes pulseAlert { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
 
-  .main-sim { flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; padding-bottom: 150px; }
-  .chart-container { background: var(--bg); padding: 5px; height: 42vh; min-height: 280px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; }
-  .chart-header { display: flex; justify-content: space-between; padding: 0 5px; margin-bottom: 5px;}
+  .main-sim { flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; padding-bottom: 100px; min-height: 0; }
+  .chart-container { background: var(--bg); padding: 5px; height: 42vh; min-height: 280px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+  .chart-header { display: flex; justify-content: space-between; padding: 0 5px; margin-bottom: 5px; flex-shrink: 0; }
   .label-sm { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); text-transform: uppercase; }
-  .chart-split { display: flex; flex-direction: column; flex-grow: 1; position: relative; }
-  .chart-main-pane { flex: 3; position: relative; min-height: 0; }
-  .chart-delta-pane { flex: 1; position: relative; min-height: 0; border-top: 1px dashed var(--border); margin-top: 5px; padding-top: 5px;}
-  .delta-label { position: absolute; top: 6px; left: 5px; font-family: var(--mono); font-size: 0.55rem; color: var(--muted); z-index: 10; background: rgba(8,11,18,0.7); padding: 2px; border-radius: 2px;}
+  
+  .chart-split { display: flex; flex-direction: column; flex-grow: 1; position: relative; min-height: 0; }
+  .chart-main-pane { flex: 3; position: relative; width: 100%; min-height: 0; }
+  .chart-delta-pane { flex: 1.2; position: relative; width: 100%; min-height: 0; border-top: 1px dashed var(--border); margin-top: 5px; }
+  .canvas-box { position: absolute; inset: 0; }
+  .canvas-box-bottom { position: absolute; inset: 0; top: 20px; } 
 
-  .indicator-row { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 6px 10px; border-bottom: 1px solid var(--border); }
+  .delta-label { position: absolute; top: 4px; left: 5px; font-family: var(--mono); font-size: 0.55rem; color: var(--muted); z-index: 10; background: rgba(8,11,18,0.7); padding: 2px; border-radius: 2px; pointer-events: none; }
+
+  .indicator-row { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 6px 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
   .ind-box { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; border-right: 1px solid var(--border); }
   .ind-box:last-child { border-right: none; }
   .ind-val { font-family: var(--mono); font-size: 1.2rem; font-weight: 700; margin-top: 2px; padding: 2px 8px; border-radius: 4px; }
@@ -59,7 +64,7 @@
   .psy-box { padding: 8px 12px; background: var(--surface); flex-grow: 1; overflow-y: auto; }
   .psy-logic { font-size: 0.85rem; color: var(--text); font-style: italic; border-left: 2px solid var(--accent); padding-left: 10px; margin-top: 6px; }
 
-  .action-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--surface2); border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 8px; z-index: 200; }
+  .action-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--surface2); border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 8px; z-index: 200; height: 90px; }
   .btn { font-family: var(--mono); font-weight: 400; font-size: 0.7rem; padding: 10px 2px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; text-transform: uppercase; text-align: center; }
   .btn:disabled { opacity: 0.4; cursor: not-allowed; border-color: var(--border) !important; color: var(--muted) !important; background: transparent !important; }
   .btn-buy { border-color: var(--accent); color: var(--accent); background: transparent; }
@@ -108,11 +113,11 @@
   .pos-score { color: var(--accent); }
   .neg-score { color: var(--red); }
   
-  .tf-row { display: flex; justify-content: space-around; background: var(--surface2); padding: 5px; border-bottom: 1px solid var(--border); }
+  .tf-row { display: flex; justify-content: space-around; background: var(--surface2); padding: 5px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
   .tf-btn { background: transparent; border: none; color: var(--muted); font-family: var(--mono); font-size: 0.75rem; padding: 5px 10px; cursor: pointer; }
   .tf-btn.active { color: var(--accent); font-weight: 700; border-bottom: 2px solid var(--accent); }
   .modal-overlay { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 600; flex-direction: column; }
-  .modal-close { padding: 12px 15px; text-align: right; color: var(--red); font-weight: bold; font-family: var(--mono); cursor: pointer; border-bottom: 1px solid var(--border); background: var(--surface); display: flex; justify-content: space-between; align-items: center; }
+  .modal-close { padding: 12px 15px; text-align: right; color: var(--red); font-weight: bold; font-family: var(--mono); cursor: pointer; border-bottom: 1px solid var(--border); background: var(--surface); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
   #ov { display: none; position: fixed; inset: 0; background: rgba(8,11,18,0.95); z-index: 1000; align-items: center; justify-content: center; flex-direction: column; }
   .spin { width: 35px; height: 35px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -123,8 +128,8 @@
 <div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.7rem; margin-top: 10px;" id="ovTxt">SYNCING...</div></div>
 
 <div id="setupScreen">
-  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v6.17</h1>
-  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Live Chart Alignment Sync</p>
+  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v6.18</h1>
+  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Single-Beam Laser Alignment</p>
   
   <div class="fund-grid" id="fundGrid">
     <div class="fund-box" onclick="selectAMC('HDFC', this)">HDFC</div>
@@ -183,12 +188,14 @@
     <button class="tf-btn active" onclick="updateLiveChart(125, this)">6M</button>
     <button class="tf-btn" onclick="updateLiveChart(250, this)">1Y</button>
   </div>
-  <div style="flex-grow: 1; padding: 5px 10px 10px 10px; display: flex; flex-direction: column;">
+  <div style="flex-grow: 1; padding: 5px 10px 10px 10px; display: flex; flex-direction: column; min-height: 0;">
     <div class="chart-split">
-      <div class="chart-main-pane"><canvas id="liveChartCanvas"></canvas></div>
+      <div class="chart-main-pane">
+        <div class="canvas-box"><canvas id="liveChartCanvas"></canvas></div>
+      </div>
       <div class="chart-delta-pane">
         <div class="delta-label">RSI DELTA (Daily - Weekly)</div>
-        <canvas id="liveDeltaCanvas"></canvas>
+        <div class="canvas-box-bottom"><canvas id="liveDeltaCanvas"></canvas></div>
       </div>
     </div>
   </div>
@@ -244,7 +251,7 @@
 
 <div id="gameUI" style="display: none; height: 100vh; flex-direction: column;">
   <header class="app-header">
-    <div class="logo">LIE DETECTOR V6.17</div>
+    <div class="logo">LIE DETECTOR V6.18</div>
     <div style="display: flex; gap: 8px; align-items: center;">
       <button class="btn-log" onclick="showLog()">LOG</button>
       <button class="btn-review" onclick="endAndReview()">END & REVIEW</button>
@@ -266,10 +273,12 @@
         <span style="font-family: var(--mono); font-size: 0.9rem; font-weight: 400;" id="simNav">NAV: --</span>
       </div>
       <div class="chart-split">
-        <div class="chart-main-pane"><canvas id="mainChart"></canvas></div>
+        <div class="chart-main-pane">
+            <div class="canvas-box"><canvas id="mainChart"></canvas></div>
+        </div>
         <div class="chart-delta-pane">
-          <div class="delta-label">RSI DELTA (Daily - Weekly)</div>
-          <canvas id="deltaChart"></canvas>
+            <div class="delta-label">RSI DELTA (Daily - Weekly)</div>
+            <div class="canvas-box-bottom"><canvas id="deltaChart"></canvas></div>
         </div>
       </div>
     </div>
@@ -416,20 +425,21 @@ const universalAnnotationsPlugin = {
     let topChart = isLive ? (typeof liveChart !== 'undefined' ? liveChart : null) : (typeof chart !== 'undefined' ? chart : null);
     let btmChart = isLive ? (typeof liveDeltaChart !== 'undefined' ? liveDeltaChart : null) : (typeof deltaChart !== 'undefined' ? deltaChart : null);
 
-    let activeIdx = null;
+    // FIX: Grab exactly ONE pixel X-coordinate from whichever chart the user is touching
+    let activeX = null;
     if (topChart && topChart.tooltip && topChart.tooltip._active && topChart.tooltip._active.length) {
-        activeIdx = topChart.tooltip._active[0].index;
+        activeX = topChart.tooltip._active[0].element.x;
     } else if (btmChart && btmChart.tooltip && btmChart.tooltip._active && btmChart.tooltip._active.length) {
-        activeIdx = btmChart.tooltip._active[0].index;
+        activeX = btmChart.tooltip._active[0].element.x;
     }
 
-    if (activeIdx !== null && meta.data[activeIdx]) {
-       let activeX = meta.data[activeIdx].x;
+    // DRAW THE PERFECTLY STRAIGHT LASER SIGHT
+    if (activeX !== null) {
        ctx.save();
        ctx.beginPath();
        ctx.setLineDash([3, 3]);
-       ctx.moveTo(activeX, chartInstance.scales.y.top);
-       ctx.lineTo(activeX, chartInstance.scales.y.bottom);
+       ctx.moveTo(activeX, chartInstance.chartArea.top);
+       ctx.lineTo(activeX, chartInstance.chartArea.bottom);
        ctx.lineWidth = 1;
        ctx.strokeStyle = '#94a3b8';
        ctx.stroke();
@@ -449,8 +459,8 @@ const universalAnnotationsPlugin = {
             if(swingLows.length === 2) break;
           }
         }
-        const startX_edge = meta.data[0].x; 
-        const endX_edge = meta.data[data.length - 1].x; 
+        const startX_edge = chartInstance.chartArea.left; 
+        const endX_edge = chartInstance.chartArea.right; 
 
         if(swingLows.length > 0) {
           ctx.lineWidth = 1; ctx.setLineDash([3, 3]); ctx.font = '9px "Space Mono"';
@@ -667,15 +677,17 @@ function updateLiveChart(days, btnElement) {
         plugins: { 
             legend: { display: false },
             tooltip: { 
-                caretPadding: 20, 
+                caretPadding: 15, 
                 callbacks: { afterBody: function(items) { if(!items.length) return ''; let idx = items[0].dataIndex; return ['----------------', `Regime : ${wmaRegimes[idx]}`, `D-RSI  : ${Math.round(drsiData[idx])}`, `W-RSI  : ${Math.round(wrsiData[idx])}`]; } } 
             },
             zoom: { zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }, pan: { enabled: true, mode: 'x' } }
         }, 
-        layout: { padding: { top: 15, bottom: 5, left: 5, right: 5 } }, 
+        // ALIGNMENT FIX: Strictly lock the padding on both charts
+        layout: { padding: { top: 15, bottom: 5, left: 20, right: 5 } }, 
         scales: { 
             x: { display: false, offset: true }, 
-            y: { display: false } 
+            // ALIGNMENT FIX: Add a ghost Y-Axis so both charts have exact same layout width
+            y: { position: 'right', display: true, grid: { display: false }, border: { display: false }, ticks: { display: false }, afterFit: function(scale) { scale.width = 45; } } 
         } 
     }
   });
@@ -698,16 +710,17 @@ function updateLiveChart(days, btnElement) {
           onHover: (e) => syncCharts(liveDeltaChart, liveChart, e), 
           plugins: { 
               legend: { display: false },
-              tooltip: { caretPadding: 20 }
+              tooltip: { caretPadding: 15 }
           },
-          layout: { padding: { top: 5, bottom: 5, left: 5, right: 5 } }, 
+          // ALIGNMENT FIX: Locked to match the top chart exactly
+          layout: { padding: { top: 5, bottom: 5, left: 20, right: 5 } }, 
           scales: {
-              // THE ALIGNMENT FIX: 'align: inner' prevents the dates from stretching the canvas.
               x: { display: true, offset: true, grid: { display: false }, ticks: { align: 'inner', maxRotation: 0, maxTicksLimit: 6, color: '#94a3b8', font: { size: 9, family: '"Space Mono"' } } },
-              y: { display: false }
+              y: { position: 'right', display: true, grid: { color: 'rgba(30, 41, 59, 0.5)' }, border: { dash: [2,4] }, min: -35, max: 35, ticks: { display: true, color: '#94a3b8', font: { size: 8, family: '"Space Mono"' }, maxTicksLimit: 5 }, afterFit: function(scale) { scale.width = 45; } }
           }
       }
   });
+  setTimeout(() => { if(liveChart) liveChart.resize(); if(liveDeltaChart) liveDeltaChart.resize(); }, 50);
 }
 
 function resetLiveZoom() { if(liveChart) liveChart.resetZoom(); }
@@ -950,14 +963,14 @@ function updateDisplay() {
         plugins: { 
             legend: { display: false },
             tooltip: { 
-                caretPadding: 20,
+                caretPadding: 15,
                 callbacks: { afterBody: function(items) { if(!items.length) return ''; let idx = items[0].dataIndex; return ['----------------', `Regime : ${wmaRegimes[idx]}`, `D-RSI  : ${Math.round(drsiData[idx])}`, `W-RSI  : ${Math.round(wrsiData[idx])}`]; } }
             }
         }, 
-        layout: { padding: { top: 15, bottom: 5, left: 5, right: 5 } }, 
+        layout: { padding: { top: 15, bottom: 5, left: 20, right: 5 } }, 
         scales: { 
             x: { display: false, offset: true }, 
-            y: { display: false } 
+            y: { position: 'right', display: true, grid: { display: false }, border: { display: false }, ticks: { display: false }, afterFit: function(scale) { scale.width = 45; } } 
         } 
     }
   });
@@ -981,15 +994,16 @@ function updateDisplay() {
           onHover: (e) => syncCharts(deltaChart, chart, e),
           plugins: { 
               legend: { display: false },
-              tooltip: { caretPadding: 20 }
+              tooltip: { caretPadding: 15 }
           }, 
-          layout: { padding: { top: 5, bottom: 5, left: 5, right: 5 } }, 
+          layout: { padding: { top: 5, bottom: 5, left: 20, right: 5 } }, 
           scales: { 
               x: { display: false, offset: true }, 
-              y: { display: false } 
+              y: { position: 'right', display: true, grid: { color: 'rgba(30, 41, 59, 0.5)' }, border: { dash: [2,4] }, min: -35, max: 35, ticks: { display: true, color: '#94a3b8', font: { size: 8, family: '"Space Mono"' }, maxTicksLimit: 5 }, afterFit: function(scale) { scale.width = 45; } } 
           } 
       }
   });
+  setTimeout(() => { if(chart) chart.resize(); if(deltaChart) deltaChart.resize(); }, 50);
 }
 
 function showLog() {
