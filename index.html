@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MF Lie Detector - Pro Mastery v6.4</title>
+<title>MF Lie Detector - Pro Mastery v6.5</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
@@ -117,8 +117,8 @@
 <div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.7rem; margin-top: 10px;" id="ovTxt">SYNCING...</div></div>
 
 <div id="setupScreen">
-  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v6.4</h1>
-  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Crosshair Sync Restored</p>
+  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v6.5</h1>
+  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Flawless Crosshair Sync</p>
   
   <div class="fund-grid" id="fundGrid">
     <div class="fund-box" onclick="selectAMC('HDFC', this)">HDFC</div>
@@ -227,7 +227,7 @@
 
 <div id="gameUI" style="display: none; height: 100vh; flex-direction: column;">
   <header class="app-header">
-    <div class="logo">LIE DETECTOR V6.4</div>
+    <div class="logo">LIE DETECTOR V6.5</div>
     <div style="display: flex; gap: 8px; align-items: center;">
       <button class="btn-log" onclick="showLog()">LOG</button>
       <button class="btn-review" onclick="endAndReview()">END & REVIEW</button>
@@ -387,37 +387,34 @@ async function fetchFundData() {
 
 const universalAnnotationsPlugin = {
   id: 'universalAnnotations',
-  afterDatasetsDraw(chart) {
-    const ctx = chart.ctx;
-    const meta = chart.getDatasetMeta(0);
-    if(!meta.data || meta.data.length === 0) return;
+  // RENAMED from chart to chartInstance to fix the Javascript Variable Shadowing bug
+  afterDatasetsDraw(chartInstance) {
+    const ctx = chartInstance.ctx;
+    const meta = chartInstance.getDatasetMeta(0);
+    const data = chartInstance.data.datasets[0].data;
+    const wma = chartInstance.data.datasets[1] ? chartInstance.data.datasets[1].data : [];
+    
+    if(!data || data.length === 0 || !meta.data || meta.data.length === 0) return;
 
     // 1. GLOBAL LASER SIGHT (CROSSHAIR)
-    let activeX = null;
-    let topChart = null, btmChart = null;
+    let isLive = chartInstance.canvas.id.includes('live');
+    let topChart = isLive ? (typeof liveChart !== 'undefined' ? liveChart : null) : (typeof chart !== 'undefined' ? chart : null);
+    let btmChart = isLive ? (typeof liveDeltaChart !== 'undefined' ? liveDeltaChart : null) : (typeof deltaChart !== 'undefined' ? deltaChart : null);
 
-    if (chart.canvas.id.includes('live')) {
-        topChart = typeof liveChart !== 'undefined' ? liveChart : null;
-        btmChart = typeof liveDeltaChart !== 'undefined' ? liveDeltaChart : null;
-    } else {
-        topChart = typeof window.chart !== 'undefined' ? window.chart : null;
-        btmChart = typeof window.deltaChart !== 'undefined' ? window.deltaChart : null;
+    let activeIdx = null;
+    if (topChart && topChart.tooltip && topChart.tooltip._active && topChart.tooltip._active.length) {
+        activeIdx = topChart.tooltip._active[0].index;
+    } else if (btmChart && btmChart.tooltip && btmChart.tooltip._active && btmChart.tooltip._active.length) {
+        activeIdx = btmChart.tooltip._active[0].index;
     }
 
-    if (topChart && btmChart) {
-        if (topChart.tooltip && topChart.tooltip._active && topChart.tooltip._active.length) {
-            activeX = topChart.tooltip._active[0].element.x;
-        } else if (btmChart.tooltip && btmChart.tooltip._active && btmChart.tooltip._active.length) {
-            activeX = btmChart.tooltip._active[0].element.x;
-        }
-    }
-
-    if (activeX !== null) {
+    if (activeIdx !== null && meta.data[activeIdx]) {
+       let activeX = meta.data[activeIdx].x;
        ctx.save();
        ctx.beginPath();
        ctx.setLineDash([3, 3]);
-       ctx.moveTo(activeX, chart.scales.y.top);
-       ctx.lineTo(activeX, chart.scales.y.bottom);
+       ctx.moveTo(activeX, chartInstance.scales.y.top);
+       ctx.lineTo(activeX, chartInstance.scales.y.bottom);
        ctx.lineWidth = 1;
        ctx.strokeStyle = '#94a3b8';
        ctx.stroke();
@@ -425,11 +422,7 @@ const universalAnnotationsPlugin = {
     }
 
     // 2. MAIN CHART ONLY (TSL, PC/NC, NOW)
-    if (chart.canvas.id === 'liveChartCanvas' || chart.canvas.id === 'mainChart') {
-        const data = chart.data.datasets[0].data;
-        const wma = chart.data.datasets[1] ? chart.data.datasets[1].data : [];
-        if(!data || data.length === 0) return;
-
+    if (chartInstance.canvas.id === 'liveChartCanvas' || chartInstance.canvas.id === 'mainChart') {
         ctx.save();
         let swingLows = [];
         for(let i = data.length - 3; i >= 2; i--) {
@@ -444,7 +437,7 @@ const universalAnnotationsPlugin = {
         if(swingLows.length > 0) {
           ctx.lineWidth = 1; ctx.setLineDash([3, 3]); ctx.font = '9px "Space Mono"';
           swingLows.forEach((low, i) => {
-            const yPos = chart.scales.y.getPixelForValue(low.val);
+            const yPos = chartInstance.scales.y.getPixelForValue(low.val);
             ctx.beginPath(); ctx.strokeStyle = i === 0 ? '#ef4444' : '#f59e0b'; ctx.fillStyle = ctx.strokeStyle;
             ctx.moveTo(startX_edge, yPos); ctx.lineTo(endX_edge, yPos); ctx.stroke();
             ctx.textAlign = 'left'; ctx.fillText(`TSL ${i+1}: ₹${low.val.toFixed(2)}`, startX_edge + 5, yPos - 5);
@@ -464,20 +457,18 @@ const universalAnnotationsPlugin = {
               let isDeclining = preMax > max * 1.02;
               if (meta.data[i-2] && meta.data[i-2].x !== undefined && isDeclining) { 
                   let x = meta.data[i-2].x; 
-                  if(data[i] > wma[i]) { ctx.fillStyle = '#10b981'; ctx.fillText('PC', x, chart.scales.y.getPixelForValue(min) + 12); lastLabelIdx = i; } 
-                  else if(data[i] < wma[i]) { ctx.fillStyle = '#ef4444'; ctx.fillText('NC', x, chart.scales.y.getPixelForValue(max) - 5); lastLabelIdx = i; }
+                  if(data[i] > wma[i]) { ctx.fillStyle = '#10b981'; ctx.fillText('PC', x, chartInstance.scales.y.getPixelForValue(min) + 12); lastLabelIdx = i; } 
+                  else if(data[i] < wma[i]) { ctx.fillStyle = '#ef4444'; ctx.fillText('NC', x, chartInstance.scales.y.getPixelForValue(max) - 5); lastLabelIdx = i; }
               }
             }
           }
         }
 
-        if(chart.canvas.id === 'liveChartCanvas') {
-            const lastVal = data[data.length - 1];
-            const lastYPos = chart.scales.y.getPixelForValue(lastVal);
-            ctx.beginPath(); ctx.setLineDash([2, 4]); ctx.strokeStyle = '#10b981'; ctx.fillStyle = '#10b981';
-            ctx.moveTo(startX_edge, lastYPos); ctx.lineTo(endX_edge, lastYPos); ctx.stroke();
-            ctx.textAlign = 'right'; ctx.fillText(`NOW: ₹${lastVal.toFixed(2)}`, endX_edge - 5, lastYPos - 5);
-        }
+        const lastVal = data[data.length - 1];
+        const lastYPos = chartInstance.scales.y.getPixelForValue(lastVal);
+        ctx.beginPath(); ctx.setLineDash([2, 4]); ctx.strokeStyle = '#10b981'; ctx.fillStyle = '#10b981';
+        ctx.moveTo(startX_edge, lastYPos); ctx.lineTo(endX_edge, lastYPos); ctx.stroke();
+        ctx.textAlign = 'right'; ctx.fillText(`NOW: ₹${lastVal.toFixed(2)}`, endX_edge - 5, lastYPos - 5);
         ctx.restore();
     }
   }
@@ -506,6 +497,7 @@ function calculateWMA(prices, period = 20) {
 }
 
 function syncCharts(source, target, e) {
+    if(!source || !target) return;
     const points = source.getElementsAtEventForMode(e, 'index', { intersect: false }, true);
     if (points.length) {
         const index = points[0].index;
@@ -518,6 +510,7 @@ function syncCharts(source, target, e) {
         target.tooltip.setActiveElements([], {});
         target.update();
     }
+    source.update(); // Forces the laser sight to update immediately
 }
 
 // --- LIVE ENGINE ---
@@ -868,7 +861,6 @@ function updateDisplay() {
 
   prevRegime = currentRegime; prevNav = currentNav; prevWma = currentWma;
 
-  // Button UI state updates
   const btnBuy10 = document.getElementById('btnBuy10');
   const btnBuy25 = document.getElementById('btnBuy25');
   const btnBuy50 = document.getElementById('btnBuy50');
