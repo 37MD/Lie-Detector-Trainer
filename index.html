@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MF Lie Detector - Pro Mastery v6.10</title>
+<title>MF Lie Detector - Pro Mastery v6.8</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
@@ -38,11 +38,10 @@
   
   @keyframes pulseAlert { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
 
-  .main-sim { flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; padding-bottom: 90px; } /* REDUCED PADDING TO FIX GAP */
-  .chart-container { background: var(--bg); padding: 5px; height: 42vh; min-height: 280px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+  .main-sim { flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; padding-bottom: 150px; }
+  .chart-container { background: var(--bg); padding: 5px; height: 42vh; min-height: 280px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; }
   .chart-header { display: flex; justify-content: space-between; padding: 0 5px; margin-bottom: 5px;}
   .label-sm { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); text-transform: uppercase; }
-  
   .chart-split { display: flex; flex-direction: column; flex-grow: 1; position: relative; }
   .chart-main-pane { flex: 3; position: relative; min-height: 0; }
   .chart-delta-pane { flex: 1; position: relative; min-height: 0; border-top: 1px dashed var(--border); margin-top: 5px; padding-top: 5px;}
@@ -111,7 +110,7 @@
   #ov { display: none; position: fixed; inset: 0; background: rgba(8,11,18,0.95); z-index: 1000; align-items: center; justify-content: center; flex-direction: column; }
   .spin { width: 35px; height: 35px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-
+  
   .custom-inputs { display: flex; gap: 10px; width: 100%; max-width: 350px; margin-bottom: 1rem; }
   .c-input-box { flex: 1; background: var(--surface2); padding: 6px; border-radius: 6px; border: 1px solid var(--border); }
   .c-label { font-size: 0.65rem; color: var(--muted); font-family: var(--mono); display: block; margin-bottom: 2px; }
@@ -123,8 +122,8 @@
 <div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.7rem; margin-top: 10px;" id="ovTxt">SYNCING...</div></div>
 
 <div id="setupScreen">
-  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v6.10</h1>
-  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Stable Layout & Rendering Fix</p>
+  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v6.8</h1>
+  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Chart Alignment & Dynamic Deltas</p>
   
   <div class="fund-grid" id="fundGrid">
     <div class="fund-box" onclick="selectAMC('HDFC', this)">HDFC</div>
@@ -244,7 +243,7 @@
 
 <div id="gameUI" style="display: none; height: 100vh; flex-direction: column;">
   <header class="app-header">
-    <div class="logo">LIE DETECTOR V6.10</div>
+    <div class="logo">LIE DETECTOR V6.8</div>
     <div style="display: flex; gap: 8px; align-items: center;">
       <button class="btn-log" onclick="showLog()">LOG</button>
       <button class="btn-review" onclick="endAndReview()">END & REVIEW</button>
@@ -385,6 +384,7 @@ let prevWma = null;
 let totalTaxPaid = 0, peakNetWorth = 100000, maxDrawdown = 0;
 let buyLockoutTimer = 0;
 
+// Dynamic Delta Threshold Variables
 let profitDeltaLevel = 15;
 let buyDeltaLevel = -15;
 
@@ -703,12 +703,6 @@ function updateLiveChart(days, btnElement) {
           }
       }
   });
-  
-  // FIX: Force resize after the modal is displayed so Chart.js calculates correct height
-  setTimeout(() => {
-      if(liveChart) liveChart.resize();
-      if(liveDeltaChart) liveDeltaChart.resize();
-  }, 10);
 }
 
 function resetLiveZoom() { if(liveChart) liveChart.resetZoom(); }
@@ -770,12 +764,6 @@ async function initGame(mode) {
   document.getElementById('setupScreen').style.display = 'none';
   document.getElementById('gameUI').style.display = 'flex';
   updateDisplay();
-  
-  // FIX: Force resize after the game UI is displayed
-  setTimeout(() => {
-      if(chart) chart.resize();
-      if(deltaChart) deltaChart.resize();
-  }, 10);
 }
 
 function updateDisplay() {
@@ -950,7 +938,6 @@ function updateDisplay() {
       ] 
     },
     options: { 
-        animation: false,
         responsive: true, maintainAspectRatio: false, 
         interaction: { mode: 'index', intersect: false },
         onHover: (e) => syncCharts(chart, deltaChart, e),
@@ -979,7 +966,6 @@ function updateDisplay() {
         ]
       },
       options: { 
-          animation: false,
           responsive: true, maintainAspectRatio: false, 
           interaction: { mode: 'index', intersect: false },
           onHover: (e) => syncCharts(deltaChart, chart, e),
