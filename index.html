@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MF Lie Detector - Pro Mastery v6.8</title>
+<title>MF Lie Detector - Pro Mastery v6.7</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
@@ -110,11 +110,6 @@
   #ov { display: none; position: fixed; inset: 0; background: rgba(8,11,18,0.95); z-index: 1000; align-items: center; justify-content: center; flex-direction: column; }
   .spin { width: 35px; height: 35px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  
-  .custom-inputs { display: flex; gap: 10px; width: 100%; max-width: 350px; margin-bottom: 1rem; }
-  .c-input-box { flex: 1; background: var(--surface2); padding: 6px; border-radius: 6px; border: 1px solid var(--border); }
-  .c-label { font-size: 0.65rem; color: var(--muted); font-family: var(--mono); display: block; margin-bottom: 2px; }
-  .c-num { width: 100%; background: transparent; border: none; font-weight: bold; font-size: 1rem; font-family: var(--mono); outline: none; }
 </style>
 </head>
 <body>
@@ -122,8 +117,8 @@
 <div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.7rem; margin-top: 10px;" id="ovTxt">SYNCING...</div></div>
 
 <div id="setupScreen">
-  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v6.8</h1>
-  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Chart Alignment & Dynamic Deltas</p>
+  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v6.7</h1>
+  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Complete Cursor Sync</p>
   
   <div class="fund-grid" id="fundGrid">
     <div class="fund-box" onclick="selectAMC('HDFC', this)">HDFC</div>
@@ -133,17 +128,6 @@
   </div>
 
   <select id="fundSelect" class="dropdown"></select>
-
-  <div class="custom-inputs">
-      <div class="c-input-box">
-          <span class="c-label">PROFIT DELTA</span>
-          <input type="number" id="profitDeltaIn" class="c-num" style="color: var(--accent2);" value="15">
-      </div>
-      <div class="c-input-box">
-          <span class="c-label">SCOUT DELTA</span>
-          <input type="number" id="buyDeltaIn" class="c-num" style="color: var(--accent);" value="-15">
-      </div>
-  </div>
 
   <div class="toggle-container">
     <input type="checkbox" id="flexiLockToggle" class="toggle-check" checked>
@@ -243,7 +227,7 @@
 
 <div id="gameUI" style="display: none; height: 100vh; flex-direction: column;">
   <header class="app-header">
-    <div class="logo">LIE DETECTOR V6.8</div>
+    <div class="logo">LIE DETECTOR V6.7</div>
     <div style="display: flex; gap: 8px; align-items: center;">
       <button class="btn-log" onclick="showLog()">LOG</button>
       <button class="btn-review" onclick="endAndReview()">END & REVIEW</button>
@@ -384,10 +368,6 @@ let prevWma = null;
 let totalTaxPaid = 0, peakNetWorth = 100000, maxDrawdown = 0;
 let buyLockoutTimer = 0;
 
-// Dynamic Delta Threshold Variables
-let profitDeltaLevel = 15;
-let buyDeltaLevel = -15;
-
 async function fetchFundData() {
   const code = document.getElementById('fundSelect').value;
   document.getElementById('ov').style.display = 'flex';
@@ -412,6 +392,7 @@ const universalAnnotationsPlugin = {
     const meta = chartInstance.getDatasetMeta(0);
     if(!meta.data || meta.data.length === 0) return;
 
+    // 1. GLOBAL LASER SIGHT (CROSSHAIR)
     let isLive = chartInstance.canvas.id.includes('live');
     let topChart = isLive ? (typeof liveChart !== 'undefined' ? liveChart : null) : (typeof window.chart !== 'undefined' ? window.chart : null);
     let btmChart = isLive ? (typeof liveDeltaChart !== 'undefined' ? liveDeltaChart : null) : (typeof window.deltaChart !== 'undefined' ? window.deltaChart : null);
@@ -436,6 +417,7 @@ const universalAnnotationsPlugin = {
        ctx.restore();
     }
 
+    // 2. MAIN CHART ONLY (TSL, PC/NC, NOW)
     if (chartInstance.canvas.id === 'liveChartCanvas' || chartInstance.canvas.id === 'mainChart') {
         const data = chartInstance.data.datasets[0].data;
         const wma = chartInstance.data.datasets[1] ? chartInstance.data.datasets[1].data : [];
@@ -533,9 +515,6 @@ function syncCharts(source, target, e) {
 
 // --- LIVE ENGINE ---
 async function initLive() {
-  profitDeltaLevel = parseFloat(document.getElementById('profitDeltaIn').value) || 15;
-  buyDeltaLevel = parseFloat(document.getElementById('buyDeltaIn').value) || -15;
-
   document.getElementById('ovTxt').textContent = "FETCHING LIVE...";
   globalLiveData = await fetchFundData();
   if(!globalLiveData.length) return;
@@ -625,10 +604,10 @@ function updateLiveChart(days, btnElement) {
   else if (lastRegime === 'A') {
       if (pcAlert) { alertText = "🟢 BUY SIGNAL: PC BREAKOUT"; alertClass = "alert-buy"; }
       else if (lastDRsi < 40) { alertText = "🟢 BUY SIGNAL: OVERSOLD (RSI < 40)"; alertClass = "alert-buy"; }
-      else if (lastDelta < buyDeltaLevel) { alertText = `🟢 BUY SIGNAL: SLINGSHOT (Delta < ${buyDeltaLevel})`; alertClass = "alert-buy"; }
+      else if (lastDelta < -15) { alertText = "🟢 BUY SIGNAL: SLINGSHOT (Delta < -15)"; alertClass = "alert-buy"; }
       else if (prevWmaVal !== null && prevNavVal !== null && prevNavVal < prevWmaVal && lastNav > lastWma) { alertText = "🟢 BUY SIGNAL: WMA RECLAIM"; alertClass = "alert-buy"; }
   }
-  if (!alertText && lastDelta > profitDeltaLevel) { alertText = `🟠 TAKE PROFIT: OVERHEATED (Delta > ${profitDeltaLevel})`; alertClass = "alert-profit"; }
+  if (!alertText && lastDelta > 15) { alertText = "🟠 TAKE PROFIT: OVERHEATED"; alertClass = "alert-profit"; }
 
   if(alertText) { banner.textContent = alertText; banner.className = alertClass; banner.style.display = 'block'; } 
   else { banner.style.display = 'none'; }
@@ -673,7 +652,7 @@ function updateLiveChart(days, btnElement) {
             zoom: { zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }, pan: { enabled: true, mode: 'x' } }
         }, 
         layout: { padding: { top: 15, bottom: 5, left: 5, right: 5 } }, 
-        scales: { x: { display: false, offset: true }, y: { grid: { color: '#1e293b' } } } 
+        scales: { x: { display: false }, y: { grid: { color: '#1e293b' } } } 
     }
   });
 
@@ -685,8 +664,8 @@ function updateLiveChart(days, btnElement) {
         labels: dataSlice.map(d => d.date), 
         datasets: [
           { type: 'bar', data: deltaData, backgroundColor: deltaColors, barPercentage: 1.0, categoryPercentage: 1.0 },
-          { type: 'line', label: 'Sell Zone', data: Array(dataSlice.length).fill(profitDeltaLevel), borderColor: '#ef4444', borderDash: [2,2], pointRadius: 0, borderWidth: 1 },
-          { type: 'line', label: 'Buy Zone', data: Array(dataSlice.length).fill(buyDeltaLevel), borderColor: '#10b981', borderDash: [2,2], pointRadius: 0, borderWidth: 1 }
+          { type: 'line', label: 'Sell Zone', data: Array(dataSlice.length).fill(15), borderColor: '#ef4444', borderDash: [2,2], pointRadius: 0, borderWidth: 1 },
+          { type: 'line', label: 'Buy Zone', data: Array(dataSlice.length).fill(-15), borderColor: '#10b981', borderDash: [2,2], pointRadius: 0, borderWidth: 1 }
         ] 
       },
       options: {
@@ -698,8 +677,8 @@ function updateLiveChart(days, btnElement) {
               tooltip: { caretPadding: 20 }
           },
           scales: {
-              x: { display: true, offset: true, grid: { display: false }, ticks: { maxTicksLimit: 6, color: '#94a3b8', font: { size: 9, family: '"Space Mono"' } } },
-              y: { position: 'right', grid: { color: 'rgba(30, 41, 59, 0.5)' }, border: { dash: [2,4] }, min: -35, max: 35, ticks: { display: true, color: '#94a3b8', font: { size: 8, family: '"Space Mono"' }, maxTicksLimit: 5 } }
+              x: { display: true, grid: { display: false }, ticks: { maxTicksLimit: 6, color: '#94a3b8', font: { size: 9, family: '"Space Mono"' } } },
+              y: { grid: { color: 'rgba(30, 41, 59, 0.5)' }, border: { dash: [2,4] }, min: -35, max: 35, ticks: { display: false } }
           }
       }
   });
@@ -710,9 +689,6 @@ function closeLive() { document.getElementById('liveModal').style.display = 'non
 
 // --- GAME ENGINE ---
 async function initGame(mode) {
-  profitDeltaLevel = parseFloat(document.getElementById('profitDeltaIn').value) || 15;
-  buyDeltaLevel = parseFloat(document.getElementById('buyDeltaIn').value) || -15;
-
   document.getElementById('ovTxt').textContent = "SYNCING SIMULATION...";
   fullHistory = await fetchFundData();
   
@@ -874,11 +850,11 @@ function updateDisplay() {
       else if (currentRegime === 'A') {
           if (pcAlert) { alertText = "🟢 BUY SIGNAL: PC BREAKOUT"; alertClass = "alert-buy"; }
           else if (dRsi < 40) { alertText = "🟢 BUY SIGNAL: OVERSOLD (RSI < 40)"; alertClass = "alert-buy"; }
-          else if (delta < buyDeltaLevel) { alertText = `🟢 BUY SIGNAL: SLINGSHOT (Delta < ${buyDeltaLevel})`; alertClass = "alert-buy"; }
+          else if (delta < -15) { alertText = "🟢 BUY SIGNAL: SLINGSHOT (Delta < -15)"; alertClass = "alert-buy"; }
           else if (prevWma !== null && prevNav !== null && prevNav < prevWma && currentNav > currentWma) { alertText = "🟢 BUY SIGNAL: WMA RECLAIM"; alertClass = "alert-buy"; }
       }
       
-      if (!alertText && delta > profitDeltaLevel) { alertText = `🟠 TAKE PROFIT: OVERHEATED (Delta > ${profitDeltaLevel})`; alertClass = "alert-profit"; }
+      if (!alertText && delta > 15) { alertText = "🟠 TAKE PROFIT (DELTA > 15)"; alertClass = "alert-profit"; }
   }
 
   if (alertText) { banner.textContent = alertText; banner.className = alertClass; banner.style.display = 'block'; }
@@ -949,20 +925,20 @@ function updateDisplay() {
             }
         }, 
         layout: { padding: { top: 15, bottom: 5, left: 5, right: 5 } }, 
-        scales: { x: { display: false, offset: true }, y: { grid: { color: '#1e293b' }, ticks: { display: false } } } 
+        scales: { x: { display: false }, y: { grid: { color: '#1e293b' }, ticks: { display: false } } } 
     }
   });
 
   if(deltaChart) deltaChart.destroy();
   deltaChart = new Chart(document.getElementById('deltaChart').getContext('2d'), {
       type: 'bar',
-      plugins: [universalAnnotationsPlugin], 
+      plugins: [universalAnnotationsPlugin], // ADDED TO SIMULATOR DELTA CHART!
       data: { 
         labels: chartData.map((_, i) => i), 
         datasets: [
           { type: 'bar', data: deltaData, backgroundColor: deltaColors, barPercentage: 1.0, categoryPercentage: 1.0 },
-          { type: 'line', label: 'Sell Zone', data: Array(chartData.length).fill(profitDeltaLevel), borderColor: '#ef4444', borderDash: [2,2], pointRadius: 0, borderWidth: 1 },
-          { type: 'line', label: 'Buy Zone', data: Array(chartData.length).fill(buyDeltaLevel), borderColor: '#10b981', borderDash: [2,2], pointRadius: 0, borderWidth: 1 }
+          { type: 'line', label: 'Sell Zone', data: Array(chartData.length).fill(15), borderColor: '#ef4444', borderDash: [2,2], pointRadius: 0, borderWidth: 1 },
+          { type: 'line', label: 'Buy Zone', data: Array(chartData.length).fill(-15), borderColor: '#10b981', borderDash: [2,2], pointRadius: 0, borderWidth: 1 }
         ]
       },
       options: { 
@@ -973,10 +949,7 @@ function updateDisplay() {
               legend: { display: false },
               tooltip: { caretPadding: 20 }
           }, 
-          scales: { 
-              x: { display: false, offset: true }, 
-              y: { position: 'right', grid: { color: 'rgba(30, 41, 59, 0.5)' }, border: { dash: [2,4] }, min: -35, max: 35, ticks: { display: true, color: '#94a3b8', font: { size: 8, family: '"Space Mono"' }, maxTicksLimit: 5 } } 
-          } 
+          scales: { x: { display: false }, y: { grid: { color: 'rgba(30, 41, 59, 0.5)' }, border: { dash: [2,4] }, min: -35, max: 35, ticks: { display: false } } } 
       }
   });
 }
@@ -1065,8 +1038,8 @@ function endAndReview() {
        let regime = wRsi >= 50 ? 'A' : (wRsi >= 40 ? 'B' : 'C');
        let delta = dRsi - wRsi;
        let dayTrade = tradeLog.find(t => t.day === (i - simStartIdx));
-       if(regime === 'A' && delta < buyDeltaLevel && (!dayTrade || !dayTrade.action.includes('BUY'))) { scoreEntry -= 5; }
-       if(delta > profitDeltaLevel && (!dayTrade || !dayTrade.action.includes('PROFIT'))) { scoreProfit -= 2; }
+       if(regime === 'A' && delta < -20 && (!dayTrade || !dayTrade.action.includes('BUY'))) { scoreEntry -= 5; }
+       if(delta > 20 && (!dayTrade || !dayTrade.action.includes('PROFIT'))) { scoreProfit -= 2; }
     }
     let totalScore = scoreEntry + scoreExit + scoreProfit;
     let totalUnits = tranches.reduce((sum, t) => sum + t.units, 0);
