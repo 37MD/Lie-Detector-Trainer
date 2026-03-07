@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MF Lie Detector - Pro Mastery v6.5</title>
+<title>MF Lie Detector - Pro Mastery v6.6</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
@@ -117,8 +117,8 @@
 <div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.7rem; margin-top: 10px;" id="ovTxt">SYNCING...</div></div>
 
 <div id="setupScreen">
-  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v6.5</h1>
-  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Flawless Crosshair Sync</p>
+  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v6.6</h1>
+  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Dual-Chart Laser Active</p>
   
   <div class="fund-grid" id="fundGrid">
     <div class="fund-box" onclick="selectAMC('HDFC', this)">HDFC</div>
@@ -227,7 +227,7 @@
 
 <div id="gameUI" style="display: none; height: 100vh; flex-direction: column;">
   <header class="app-header">
-    <div class="logo">LIE DETECTOR V6.5</div>
+    <div class="logo">LIE DETECTOR V6.6</div>
     <div style="display: flex; gap: 8px; align-items: center;">
       <button class="btn-log" onclick="showLog()">LOG</button>
       <button class="btn-review" onclick="endAndReview()">END & REVIEW</button>
@@ -387,14 +387,10 @@ async function fetchFundData() {
 
 const universalAnnotationsPlugin = {
   id: 'universalAnnotations',
-  // RENAMED from chart to chartInstance to fix the Javascript Variable Shadowing bug
   afterDatasetsDraw(chartInstance) {
     const ctx = chartInstance.ctx;
     const meta = chartInstance.getDatasetMeta(0);
-    const data = chartInstance.data.datasets[0].data;
-    const wma = chartInstance.data.datasets[1] ? chartInstance.data.datasets[1].data : [];
-    
-    if(!data || data.length === 0 || !meta.data || meta.data.length === 0) return;
+    if(!meta.data || meta.data.length === 0) return;
 
     // 1. GLOBAL LASER SIGHT (CROSSHAIR)
     let isLive = chartInstance.canvas.id.includes('live');
@@ -423,6 +419,10 @@ const universalAnnotationsPlugin = {
 
     // 2. MAIN CHART ONLY (TSL, PC/NC, NOW)
     if (chartInstance.canvas.id === 'liveChartCanvas' || chartInstance.canvas.id === 'mainChart') {
+        const data = chartInstance.data.datasets[0].data;
+        const wma = chartInstance.data.datasets[1] ? chartInstance.data.datasets[1].data : [];
+        if(!data || data.length === 0) return;
+
         ctx.save();
         let swingLows = [];
         for(let i = data.length - 3; i >= 2; i--) {
@@ -659,6 +659,7 @@ function updateLiveChart(days, btnElement) {
   if(liveDeltaChart) liveDeltaChart.destroy();
   liveDeltaChart = new Chart(document.getElementById('liveDeltaCanvas').getContext('2d'), {
       type: 'bar',
+      plugins: [universalAnnotationsPlugin], // ADDED PLUGIN TO DELTA CHART
       data: { 
         labels: dataSlice.map(d => d.date), 
         datasets: [
@@ -931,6 +932,7 @@ function updateDisplay() {
   if(deltaChart) deltaChart.destroy();
   deltaChart = new Chart(document.getElementById('deltaChart').getContext('2d'), {
       type: 'bar',
+      plugins: [universalAnnotationsPlugin], // ADDED PLUGIN TO DELTA CHART
       data: { 
         labels: chartData.map((_, i) => i), 
         datasets: [
