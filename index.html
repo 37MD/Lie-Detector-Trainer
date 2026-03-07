@@ -3,244 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MF Lie Detector - Pro Mastery v6.15</title>
+    <title>MF Lie Detector - Pro Mastery v6.13</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
     <style>
         :root {
             --bg: #080b12; --surface: #0f172a; --surface2: #1e293b;
             --border: #334155; --accent: #10b981; --accent2: #f59e0b;
-            --red: #ef4444; --text: #f1f5f9; --muted: #94a3b8;
+            --red: #ef4444; --text: #f1f5f9; --muted: #94a3b8; --gold: #fbbf24;
             --mono: 'Space Mono', monospace; --sans: 'DM Sans', sans-serif;
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background-color: var(--bg); color: var(--text); font-family: var(--sans); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-
-        /* COMPARTMENT: SETUP SCREEN */
-        #setupScreen { position: fixed; inset: 0; background: var(--bg); z-index: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem; }
-        .dropdown { background: var(--surface2); border: 1px solid var(--border); color: white; padding: 12px; width: 100%; max-width: 350px; margin-bottom: 1rem; border-radius: 6px; }
-
-        /* COMPARTMENT: HUD */
-        .hud { display: flex; justify-content: space-around; background: var(--surface); padding: 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-        .hud-item { text-align: center; }
-        .hud-label { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; display: block; }
-        .hud-val { font-family: var(--mono); font-size: 1.1rem; font-weight: bold; }
-
-        /* COMPARTMENT: VISUALIZATION */
-        .chart-frame { position: relative; flex-grow: 1; width: 100%; display: flex; flex-direction: column; min-height: 0; }
-        .viewport { position: relative; flex: 1; width: 100%; overflow: hidden; touch-action: none; background: #000; }
-        canvas { position: absolute; inset: 0; z-index: 1; width: 100% !important; height: 100% !important; }
-
-        /* CURSOR OVERLAY */
-        .cursor-overlay { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
-        .v-line { position: absolute; top: 0; bottom: 0; width: 1px; border-left: 1px dashed rgba(148, 163, 184, 0.5); display: none; }
-        .data-tag { position: absolute; background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: var(--mono); font-size: 0.65rem; padding: 4px 8px; border-radius: 4px; display: none; z-index: 20; }
-
-        .controls { height: 90px; background: var(--surface2); border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 10px; flex-shrink: 0; }
-        .btn { border: 1px solid var(--border); background: transparent; color: var(--text); font-family: var(--mono); font-size: 0.7rem; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
-        .btn-buy { border-color: var(--accent); color: var(--accent); font-weight: bold; }
-        .btn-sim { background: var(--accent); color: #000; font-weight: bold; padding: 15px; margin-top: 10px; width: 100%; max-width: 350px; }
+        body { background-color: var(--bg); color: var(--text); font-family: var(--sans); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        #ov { position: fixed; inset: 0; background: rgba(8,11,18,0.95); z-index: 1000; display: none; align-items: center; justify-content: center; flex-direction: column; font-family: var(--mono); color: var(--accent); }
+        /* Layout Compartments */
+        .app-header { display:flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+        .networth-header { display: flex; justify-content: space-around; background: var(--surface2); border-bottom: 1px solid var(--border); padding: 8px 5px; flex-shrink: 0; }
+        .chart-container { background: var(--bg); height: 42vh; min-height: 280px; display: flex; flex-direction: column; flex-shrink: 0; border-bottom: 1px solid var(--border); }
+        .indicator-row { display: flex; justify-content: space-between; background: var(--surface); padding: 6px 10px; border-bottom: 1px solid var(--border); }
+        .action-bar { position: fixed; bottom: 0; width: 100%; background: var(--surface2); border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 8px; height: 90px; }
+        
+        /* UI Components */
+        .ind-box { flex: 1; text-align: center; border-right: 1px solid var(--border); }
+        .ind-val { font-family: var(--mono); font-size: 1.2rem; font-weight: 700; margin-top: 2px; }
+        .btn { font-family: var(--mono); font-size: 0.7rem; padding: 10px 2px; border-radius: 4px; border: 1px solid transparent; text-transform: uppercase; cursor: pointer; }
+        .reg-A { color: var(--accent); background: rgba(16, 185, 129, 0.1); }
+        .reg-B { color: var(--accent2); background: rgba(245, 158, 11, 0.1); }
+        .reg-C { color: var(--red); background: rgba(239, 68, 68, 0.1); }
+        
+        /* Overlay & Modals */
+        #ov { position: fixed; inset: 0; background: rgba(8,11,18,0.95); z-index: 1000; display: none; align-items: center; justify-content: center; flex-direction: column; }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 600; flex-direction: column; }
     </style>
 </head>
 <body>
-
-<div id="ov">SYNCING DATA...</div>
-
-<div id="setupScreen">
-    <h2 style="margin-bottom: 1rem; color: var(--accent);">LIE DETECTOR v6.15</h2>
-    <select id="fundSelect" class="dropdown">
-        <option value="120377">ICICI Balanced Advantage</option>
-        <option value="118968">HDFC Balanced Advantage</option>
-        <option value="120166">Kotak Flexicap</option>
-        <option value="153736">ABSL BSE 500 Momentum 50</option>
-    </select>
-    <button class="btn btn-sim" onclick="initSimulation('wave')">START WAVE SIMULATOR</button>
-    <button class="btn btn-sim" style="background: var(--muted);" onclick="initSimulation('random')">RANDOM BACKTEST</button>
-</div>
-
-<div id="gameUI" style="display:none; height: 100vh; flex-direction: column;">
-    <div class="hud">
-        <div class="hud-item"><span class="hud-label">NAV</span><div id="valNav" class="hud-val">--</div></div>
-        <div class="hud-item"><span class="hud-label">D-RSI</span><div id="valDRsi" class="hud-val">--</div></div>
-        <div class="hud-item"><span class="hud-label">W-RSI</span><div id="valWRsi" class="hud-val">--</div></div>
-        <div class="hud-item"><span class="hud-label" id="dayLabel">DAY 0</span><div id="valRegime" class="hud-val">--</div></div>
-    </div>
-
-    <div class="chart-frame">
-        <div class="viewport" id="mainViewport">
-            <canvas id="priceChart"></canvas>
-            <div class="cursor-overlay" id="priceOverlay">
-                <div class="v-line"></div>
-                <div class="data-tag"></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="controls">
-        <button class="btn btn-buy" onclick="nextDay()">HOLD / NEXT</button>
-        <button class="btn" style="color: var(--accent);" onclick="trade('BUY')">BUY 25%</button>
-        <button class="btn" style="color: var(--red);" onclick="trade('SELL')">SELL ALL</button>
-        <button class="btn" onclick="location.reload()">CLOSE</button>
-    </div>
-</div>
-
-<script>
-/** * COMPARTMENT: CALCULATION ENGINE */
-class MarketMath {
-    static calculateRSI(prices, period = 14) {
-        if (prices.length <= period) return 50;
-        let gains = 0, losses = 0;
-        for (let i = 1; i <= period; i++) {
-            let d = prices[i] - prices[i - 1];
-            d > 0 ? gains += d : losses -= d;
-        }
-        let avgGain = gains / period; let avgLoss = losses / period;
-        for (let i = period + 1; i < prices.length; i++) {
-            let d = prices[i] - prices[i - 1];
-            avgGain = ((avgGain * (period - 1)) + (d > 0 ? d : 0)) / period;
-            avgLoss = ((avgLoss * (period - 1)) + (d < 0 ? -d : 0)) / period;
-        }
-        return avgLoss === 0 ? 100 : 100 - (100 / (1 + (avgGain / avgLoss)));
-    }
-}
-
-/** * COMPARTMENT: VISUALIZATION ENGINE */
-class ChartPainter {
-    constructor(id) {
-        this.ctx = document.getElementById(id).getContext('2d');
-        this.chart = null;
-    }
-    draw(dataPoints) {
-        if (this.chart) this.chart.destroy();
-        this.chart = new Chart(this.ctx, {
-            type: 'line',
-            data: {
-                labels: dataPoints.map((_, i) => i),
-                datasets: [{
-                    data: dataPoints.map(p => p.nav),
-                    borderColor: '#10b981',
-                    borderWidth: 2,
-                    pointRadius: 0,
-                    fill: true,
-                    backgroundColor: 'rgba(16, 185, 129, 0.05)'
-                }]
-            },
-            options: {
-                animation: false, responsive: true, maintainAspectRatio: false,
-                events: [], // Static draw optimization
-                scales: { x: { display: false }, y: { position: 'right', grid: { color: '#1e293b' } } },
-                plugins: { legend: { display: false } }
-            }
-        });
-    }
-}
-
-class CursorTracker {
-    constructor(overlayId, painter) {
-        this.overlay = document.getElementById(overlayId);
-        this.vline = this.overlay.querySelector('.v-line');
-        this.tag = this.overlay.querySelector('.data-tag');
-        this.painter = painter;
-        this.data = [];
-    }
-    init(data) {
-        this.data = data;
-        const vp = this.overlay.parentElement;
-        vp.onmousemove = (e) => this.update(e);
-        vp.ontouchmove = (e) => this.update(e.touches[0]);
-        vp.onmouseleave = () => this.hide();
-    }
-    update(e) {
-        if (!this.painter.chart) return;
-        const rect = this.painter.chart.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const chart = this.painter.chart;
-        this.vline.style.left = `${x}px`;
-        this.vline.style.display = 'block';
-
-        const idx = Math.round(chart.scales.x.getValueForPixel(x));
-        if (idx >= 0 && idx < this.data.length) {
-            const p = this.data[idx];
-            document.getElementById('valNav').innerText = `₹${p.nav.toFixed(2)}`;
-            document.getElementById('valDRsi').innerText = Math.round(p.dRsi);
-            document.getElementById('valWRsi').innerText = Math.round(p.wRsi);
-            this.tag.style.left = `${x + 10}px`;
-            this.tag.style.top = `50px`;
-            this.tag.innerText = `Day ${idx}: ₹${p.nav.toFixed(2)}`;
-            this.tag.style.display = 'block';
-        }
-    }
-    hide() { this.vline.style.display = 'none'; this.tag.style.display = 'none'; }
-}
-
-/** * COMPARTMENT: SIMULATION LOGIC */
-let fullHistory = [];
-let simPointer = 0;
-let activeData = [];
-const painter = new ChartPainter('priceChart');
-const tracker = new CursorTracker('priceOverlay', painter);
-
-async function initSimulation(mode) {
-    const code = document.getElementById('fundSelect').value;
-    document.getElementById('ov').style.display = 'flex';
-    
-    try {
-        const res = await fetch(`https://api.mfapi.in/mf/${code}`);
-        const json = await res.json();
-        fullHistory = json.data.map(d => ({ nav: parseFloat(d.nav), date: d.date })).reverse();
-        
-        // WAVE SIMULATOR LOGIC
-        if (mode === 'wave') {
-            const waveStart = fullHistory.findIndex(d => {
-                const parts = d.date.split('-');
-                return parseInt(parts[2]) > 2024 || (parseInt(parts[2]) === 2024 && parseInt(parts[1]) >= 9);
-            });
-            simPointer = waveStart !== -1 ? waveStart : Math.floor(fullHistory.length * 0.8);
-        } else {
-            simPointer = Math.floor(Math.random() * (fullHistory.length - 200)) + 50;
-        }
-
-        activeData = [];
-        document.getElementById('setupScreen').style.display = 'none';
-        document.getElementById('gameUI').style.display = 'flex';
-        document.getElementById('ov').style.display = 'none';
-        
-        // Seed initial 30 days for RSI calculation
-        for(let i=0; i<30; i++) step(); 
-        render();
-    } catch (e) { alert("API Error. Check Connection."); }
-}
-
-function step() {
-    if (simPointer >= fullHistory.length) return;
-    const slice = fullHistory.slice(0, simPointer + 1).map(d => d.nav);
-    const dRsi = MarketMath.calculateRSI(slice, 14);
-    const wRsi = MarketMath.calculateRSI(slice.filter((_, i) => i % 5 === 0), 14);
-    
-    activeData.push({
-        nav: fullHistory[simPointer].nav,
-        dRsi: dRsi,
-        wRsi: wRsi
-    });
-    simPointer++;
-}
-
-function render() {
-    painter.draw(activeData);
-    tracker.init(activeData);
-    const last = activeData[activeData.length - 1];
-    document.getElementById('valNav').innerText = `₹${last.nav.toFixed(2)}`;
-    document.getElementById('valDRsi').innerText = Math.round(last.dRsi);
-    document.getElementById('valWRsi').innerText = Math.round(last.wRsi);
-    document.getElementById('valRegime').innerText = last.wRsi >= 50 ? 'REG A' : 'REG B/C';
-    document.getElementById('dayLabel').innerText = `DAY ${activeData.length}`;
-}
-
-function nextDay() { step(); render(); }
-function trade(type) { nextDay(); } // Simplified for visualization focus
-</script>
-</body>
-</html>
+    </body>
