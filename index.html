@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MF Lie Detector - Pro Mastery v6.14</title>
+    <title>MF Lie Detector - Pro Mastery v6.15</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -17,85 +17,56 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background-color: var(--bg); color: var(--text); font-family: var(--sans); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-        /* COMPARTMENT 1: VISUALIZATION LAYOUT */
-        .chart-frame {
-            position: relative;
-            flex-grow: 1;
-            width: 100%;
-            min-height: 0;
-            background: var(--bg);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-        }
+        /* COMPARTMENT: SETUP SCREEN */
+        #setupScreen { position: fixed; inset: 0; background: var(--bg); z-index: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem; }
+        .dropdown { background: var(--surface2); border: 1px solid var(--border); color: white; padding: 12px; width: 100%; max-width: 350px; margin-bottom: 1rem; border-radius: 6px; }
 
-        /* The Viewport contains both Canvas (Static) and Overlay (Dynamic) */
-        .viewport {
-            position: relative;
-            flex: 1;
-            width: 100%;
-            overflow: hidden;
-            touch-action: none;
-        }
-
-        canvas { position: absolute; inset: 0; z-index: 1; width: 100% !important; height: 100% !important; }
-
-        /* COMPARTMENT 2: CURSOR & INTERACTION OVERLAY */
-        .cursor-overlay {
-            position: absolute;
-            inset: 0;
-            z-index: 10;
-            pointer-events: none;
-        }
-
-        .v-line {
-            position: absolute;
-            top: 0; bottom: 0;
-            width: 1px;
-            border-left: 1px dashed rgba(148, 163, 184, 0.5);
-            display: none;
-        }
-
-        .h-line {
-            position: absolute;
-            left: 0; right: 0;
-            height: 1px;
-            border-top: 1px dashed rgba(148, 163, 184, 0.5);
-            display: none;
-        }
-
-        .data-tag {
-            position: absolute;
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            color: var(--text);
-            font-family: var(--mono);
-            font-size: 0.65rem;
-            padding: 2px 6px;
-            border-radius: 4px;
-            pointer-events: none;
-            display: none;
-            z-index: 20;
-        }
-
-        /* UI Elements */
-        .hud { display: flex; justify-content: space-around; background: var(--surface); padding: 10px; border-bottom: 1px solid var(--border); }
+        /* COMPARTMENT: HUD */
+        .hud { display: flex; justify-content: space-around; background: var(--surface); padding: 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
         .hud-item { text-align: center; }
         .hud-label { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; display: block; }
         .hud-val { font-family: var(--mono); font-size: 1.1rem; font-weight: bold; }
+
+        /* COMPARTMENT: VISUALIZATION */
+        .chart-frame { position: relative; flex-grow: 1; width: 100%; display: flex; flex-direction: column; min-height: 0; }
+        .viewport { position: relative; flex: 1; width: 100%; overflow: hidden; touch-action: none; background: #000; }
+        canvas { position: absolute; inset: 0; z-index: 1; width: 100% !important; height: 100% !important; }
+
+        /* CURSOR OVERLAY */
+        .cursor-overlay { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
+        .v-line { position: absolute; top: 0; bottom: 0; width: 1px; border-left: 1px dashed rgba(148, 163, 184, 0.5); display: none; }
+        .data-tag { position: absolute; background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: var(--mono); font-size: 0.65rem; padding: 4px 8px; border-radius: 4px; display: none; z-index: 20; }
+
+        .controls { height: 90px; background: var(--surface2); border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 10px; flex-shrink: 0; }
+        .btn { border: 1px solid var(--border); background: transparent; color: var(--text); font-family: var(--mono); font-size: 0.7rem; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
+        .btn-buy { border-color: var(--accent); color: var(--accent); font-weight: bold; }
+        .btn-sim { background: var(--accent); color: #000; font-weight: bold; padding: 15px; margin-top: 10px; width: 100%; max-width: 350px; }
         
-        .controls { height: 80px; background: var(--surface2); display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; padding: 10px; }
-        .btn { border: 1px solid var(--border); background: transparent; color: var(--text); font-family: var(--mono); font-size: 0.7rem; border-radius: 4px; cursor: pointer; }
-        .btn-buy { border-color: var(--accent); color: var(--accent); }
+        #ov { position: fixed; inset: 0; background: rgba(8,11,18,0.95); z-index: 1000; display: none; align-items: center; justify-content: center; flex-direction: column; font-family: var(--mono); color: var(--accent); }
     </style>
 </head>
 <body>
 
+<div id="ov">SYNCING DATA...</div>
+
+<div id="setupScreen">
+    <h2 style="margin-bottom: 1rem; color: var(--accent);">LIE DETECTOR v6.15</h2>
+    <select id="fundSelect" class="dropdown">
+        <option value="120377">ICICI Balanced Advantage</option>
+        <option value="118968">HDFC Balanced Advantage</option>
+        <option value="120166">Kotak Flexicap</option>
+        <option value="153736">ABSL BSE 500 Momentum 50</option>
+    </select>
+    <button class="btn btn-sim" onclick="initSimulation('wave')">START WAVE SIMULATOR</button>
+    <button class="btn btn-sim" style="background: var(--muted);" onclick="initSimulation('random')">RANDOM BACKTEST</button>
+</div>
+
+<div id="gameUI" style="display:none; height: 100vh; flex-direction: column;">
     <div class="hud">
         <div class="hud-item"><span class="hud-label">NAV</span><div id="valNav" class="hud-val">--</div></div>
         <div class="hud-item"><span class="hud-label">D-RSI</span><div id="valDRsi" class="hud-val">--</div></div>
         <div class="hud-item"><span class="hud-label">W-RSI</span><div id="valWRsi" class="hud-val">--</div></div>
-        <div class="hud-item"><span class="hud-label">DELTA</span><div id="valDelta" class="hud-val">--</div></div>
+        <div class="hud-item"><span class="hud-label" id="dayLabel">DAY 0</span><div id="valRegime" class="hud-val">--</div></div>
     </div>
 
     <div class="chart-frame">
@@ -103,22 +74,21 @@
             <canvas id="priceChart"></canvas>
             <div class="cursor-overlay" id="priceOverlay">
                 <div class="v-line"></div>
-                <div class="h-line"></div>
                 <div class="data-tag"></div>
             </div>
         </div>
     </div>
 
     <div class="controls">
-        <button class="btn btn-buy" onclick="nextDay()">NEXT DAY</button>
-        <button class="btn" onclick="trade('BUY')">BUY</button>
-        <button class="btn" onclick="trade('SELL')">SELL</button>
-        <button class="btn" onclick="location.reload()">RESET</button>
+        <button class="btn btn-buy" onclick="nextDay()">HOLD / NEXT</button>
+        <button class="btn" style="color: var(--accent);" onclick="trade('BUY')">BUY 25%</button>
+        <button class="btn" style="color: var(--red);" onclick="trade('SELL')">SELL ALL</button>
+        <button class="btn" onclick="location.reload()">CLOSE</button>
     </div>
+</div>
 
 <script>
-/** * COMPARTMENT: CALCULATIONS ENGINE
- */
+/** * COMPARTMENT: CALCULATION ENGINE */
 class MarketMath {
     static calculateRSI(prices, period = 14) {
         if (prices.length <= period) return 50;
@@ -137,25 +107,20 @@ class MarketMath {
     }
 }
 
-/** * COMPARTMENT: VISUALIZATION ENGINE (CHART PAINTER)
- */
+/** * COMPARTMENT: VISUALIZATION ENGINE */
 class ChartPainter {
     constructor(id) {
         this.ctx = document.getElementById(id).getContext('2d');
         this.chart = null;
     }
-
     draw(dataPoints) {
-        const labels = dataPoints.map((_, i) => i);
-        const values = dataPoints.map(p => p.nav);
-
         if (this.chart) this.chart.destroy();
         this.chart = new Chart(this.ctx, {
             type: 'line',
             data: {
-                labels: labels,
+                labels: dataPoints.map((_, i) => i),
                 datasets: [{
-                    data: values,
+                    data: dataPoints.map(p => p.nav),
                     borderColor: '#10b981',
                     borderWidth: 2,
                     pointRadius: 0,
@@ -164,117 +129,118 @@ class ChartPainter {
                 }]
             },
             options: {
-                animation: false,
-                responsive: true,
-                maintainAspectRatio: false,
-                events: [], // Optimization: Chart doesn't listen to mouse
-                scales: { 
-                    x: { display: false },
-                    y: { grid: { color: '#1e293b' }, position: 'right' }
-                },
+                animation: false, responsive: true, maintainAspectRatio: false,
+                events: [], // Static draw optimization
+                scales: { x: { display: false }, y: { position: 'right', grid: { color: '#1e293b' } } },
                 plugins: { legend: { display: false } }
             }
         });
     }
 }
 
-/** * COMPARTMENT: INTERACTION ENGINE (CURSOR TRACKER)
- */
 class CursorTracker {
     constructor(overlayId, painter) {
         this.overlay = document.getElementById(overlayId);
         this.vline = this.overlay.querySelector('.v-line');
-        this.hline = this.overlay.querySelector('.h-line');
         this.tag = this.overlay.querySelector('.data-tag');
         this.painter = painter;
         this.data = [];
     }
-
     init(data) {
         this.data = data;
-        const viewport = this.overlay.parentElement;
-        
-        viewport.addEventListener('mousemove', (e) => this.update(e));
-        viewport.addEventListener('touchstart', (e) => this.update(e.touches[0]), {passive: true});
-        viewport.addEventListener('mouseleave', () => this.hide());
+        const vp = this.overlay.parentElement;
+        vp.onmousemove = (e) => this.update(e);
+        vp.ontouchmove = (e) => this.update(e.touches[0]);
+        vp.onmouseleave = () => this.hide();
     }
-
     update(e) {
         if (!this.painter.chart) return;
-        
         const rect = this.painter.chart.canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
         const chart = this.painter.chart;
-
-        // Move Visual Elements
         this.vline.style.left = `${x}px`;
-        this.hline.style.top = `${y}px`;
         this.vline.style.display = 'block';
-        this.hline.style.display = 'block';
 
-        // Get Data Index
-        const index = Math.round(chart.scales.x.getValueForPixel(x));
-        if (index >= 0 && index < this.data.length) {
-            const point = this.data[index];
-            
-            // Update HUD
-            document.getElementById('valNav').innerText = `₹${point.nav.toFixed(2)}`;
-            document.getElementById('valDRsi').innerText = Math.round(point.dRsi);
-            document.getElementById('valWRsi').innerText = Math.round(point.wRsi);
-            document.getElementById('valDelta').innerText = Math.round(point.dRsi - point.wRsi);
-            
-            // Position Tag
+        const idx = Math.round(chart.scales.x.getValueForPixel(x));
+        if (idx >= 0 && idx < this.data.length) {
+            const p = this.data[idx];
+            document.getElementById('valNav').innerText = `₹${p.nav.toFixed(2)}`;
+            document.getElementById('valDRsi').innerText = Math.round(p.dRsi);
+            document.getElementById('valWRsi').innerText = Math.round(p.wRsi);
             this.tag.style.left = `${x + 10}px`;
-            this.tag.style.top = `${y - 25}px`;
-            this.tag.innerText = `₹${point.nav.toFixed(2)}`;
+            this.tag.style.top = `50px`;
+            this.tag.innerText = `Day ${idx}: ₹${p.nav.toFixed(2)}`;
             this.tag.style.display = 'block';
         }
     }
-
-    hide() {
-        this.vline.style.display = 'none';
-        this.hline.style.display = 'none';
-        this.tag.style.display = 'none';
-    }
+    hide() { this.vline.style.display = 'none'; this.tag.style.display = 'none'; }
 }
 
-// APP STATE
-let history = [];
-let currentData = [];
+/** * COMPARTMENT: SIMULATION LOGIC */
+let fullHistory = [];
+let simPointer = 0;
+let activeData = [];
 const painter = new ChartPainter('priceChart');
 const tracker = new CursorTracker('priceOverlay', painter);
 
-// Mock Data Generator for Logic Test
-function init() {
-    let val = 100;
-    for(let i=0; i<200; i++) {
-        val += (Math.random() - 0.48) * 3;
-        history.push(val);
-    }
-    processDay();
+async function initSimulation(mode) {
+    const code = document.getElementById('fundSelect').value;
+    document.getElementById('ov').style.display = 'flex';
+    
+    try {
+        const res = await fetch(`https://api.mfapi.in/mf/${code}`);
+        const json = await res.json();
+        fullHistory = json.data.map(d => ({ nav: parseFloat(d.nav), date: d.date })).reverse();
+        
+        // WAVE SIMULATOR LOGIC
+        if (mode === 'wave') {
+            const waveStart = fullHistory.findIndex(d => {
+                const parts = d.date.split('-');
+                return parseInt(parts[2]) > 2024 || (parseInt(parts[2]) === 2024 && parseInt(parts[1]) >= 9);
+            });
+            simPointer = waveStart !== -1 ? waveStart : Math.floor(fullHistory.length * 0.8);
+        } else {
+            simPointer = Math.floor(Math.random() * (fullHistory.length - 200)) + 50;
+        }
+
+        activeData = [];
+        document.getElementById('setupScreen').style.display = 'none';
+        document.getElementById('gameUI').style.display = 'flex';
+        document.getElementById('ov').style.display = 'none';
+        
+        // Seed initial 30 days for RSI calculation
+        for(let i=0; i<30; i++) step(); 
+        render();
+    } catch (e) { alert("API Error. Check Connection."); }
 }
 
-function processDay() {
-    const prices = history.slice(0, currentData.length + 50);
-    const dRsi = MarketMath.calculateRSI(prices, 14);
-    const wRsi = MarketMath.calculateRSI(prices.filter((_, i) => i % 5 === 0), 14);
+function step() {
+    if (simPointer >= fullHistory.length) return;
+    const slice = fullHistory.slice(0, simPointer + 1).map(d => d.nav);
+    const dRsi = MarketMath.calculateRSI(slice, 14);
+    const wRsi = MarketMath.calculateRSI(slice.filter((_, i) => i % 5 === 0), 14);
     
-    currentData.push({
-        nav: prices[prices.length - 1],
+    activeData.push({
+        nav: fullHistory[simPointer].nav,
         dRsi: dRsi,
         wRsi: wRsi
     });
-
-    painter.draw(currentData);
-    tracker.init(currentData);
+    simPointer++;
 }
 
-function nextDay() {
-    processDay();
+function render() {
+    painter.draw(activeData);
+    tracker.init(activeData);
+    const last = activeData[activeData.length - 1];
+    document.getElementById('valNav').innerText = `₹${last.nav.toFixed(2)}`;
+    document.getElementById('valDRsi').innerText = Math.round(last.dRsi);
+    document.getElementById('valWRsi').innerText = Math.round(last.wRsi);
+    document.getElementById('valRegime').innerText = last.wRsi >= 50 ? 'REG A' : 'REG B/C';
+    document.getElementById('dayLabel').innerText = `DAY ${activeData.length}`;
 }
 
-window.onload = init;
+function nextDay() { step(); render(); }
+function trade(type) { nextDay(); } // Simplified for visualization focus
 </script>
 </body>
 </html>
