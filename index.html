@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MF Lie Detector - Pro Mastery v6.18</title>
+<title>MF Lie Detector - Pro Mastery v6.13</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
@@ -80,12 +80,6 @@
   .fund-box { background: var(--surface2); border: 2px solid var(--border); color: var(--text); padding: 12px 2px; border-radius: 6px; font-family: var(--sans); font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
   .fund-box.active { border-color: var(--accent); background: rgba(16, 185, 129, 0.1); color: var(--accent); }
   .dropdown { background: var(--surface2); border: 1px solid var(--border); color: white; padding: 12px; width: 100%; max-width: 350px; margin-bottom: 1rem; border-radius: 6px; font-family: var(--sans); font-size: 0.85rem; }
-  
-  .custom-inputs { display: flex; gap: 10px; width: 100%; max-width: 350px; margin-bottom: 1rem; }
-  .c-input-box { flex: 1; background: var(--surface2); padding: 6px; border-radius: 6px; border: 1px solid var(--border); }
-  .c-label { font-size: 0.65rem; color: var(--muted); font-family: var(--mono); display: block; margin-bottom: 2px; }
-  .c-num { width: 100%; background: transparent; border: none; font-weight: bold; font-size: 1rem; font-family: var(--mono); outline: none; text-align: center; color: white;}
-
   .toggle-container { margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; font-size: 0.75rem; color: var(--muted); background: var(--surface2); padding: 8px; border-radius: 6px; border: 1px solid var(--border); }
   .toggle-check { accent-color: var(--accent); transform: scale(1.2); cursor: pointer; }
   .reset-zoom { font-size: 0.6rem; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 2px 6px; border-radius: 4px; cursor: pointer; }
@@ -121,6 +115,11 @@
   #ov { display: none; position: fixed; inset: 0; background: rgba(8,11,18,0.95); z-index: 1000; align-items: center; justify-content: center; flex-direction: column; }
   .spin { width: 35px; height: 35px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  .custom-inputs { display: flex; gap: 10px; width: 100%; max-width: 350px; margin-bottom: 1rem; }
+  .c-input-box { flex: 1; background: var(--surface2); padding: 6px; border-radius: 6px; border: 1px solid var(--border); }
+  .c-label { font-size: 0.65rem; color: var(--muted); font-family: var(--mono); display: block; margin-bottom: 2px; }
+  .c-num { width: 100%; background: transparent; border: none; font-weight: bold; font-size: 1rem; font-family: var(--mono); outline: none; text-align: center; color: white;}
 </style>
 </head>
 <body>
@@ -128,8 +127,8 @@
 <div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.7rem; margin-top: 10px;" id="ovTxt">SYNCING...</div></div>
 
 <div id="setupScreen">
-  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v6.18</h1>
-  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Single-Beam Laser Alignment</p>
+  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v6.13</h1>
+  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Stable Baseline Restored</p>
   
   <div class="fund-grid" id="fundGrid">
     <div class="fund-box" onclick="selectAMC('HDFC', this)">HDFC</div>
@@ -251,7 +250,7 @@
 
 <div id="gameUI" style="display: none; height: 100vh; flex-direction: column;">
   <header class="app-header">
-    <div class="logo">LIE DETECTOR V6.18</div>
+    <div class="logo">LIE DETECTOR V6.13</div>
     <div style="display: flex; gap: 8px; align-items: center;">
       <button class="btn-log" onclick="showLog()">LOG</button>
       <button class="btn-review" onclick="endAndReview()">END & REVIEW</button>
@@ -425,21 +424,20 @@ const universalAnnotationsPlugin = {
     let topChart = isLive ? (typeof liveChart !== 'undefined' ? liveChart : null) : (typeof chart !== 'undefined' ? chart : null);
     let btmChart = isLive ? (typeof liveDeltaChart !== 'undefined' ? liveDeltaChart : null) : (typeof deltaChart !== 'undefined' ? deltaChart : null);
 
-    // FIX: Grab exactly ONE pixel X-coordinate from whichever chart the user is touching
-    let activeX = null;
+    let activeIdx = null;
     if (topChart && topChart.tooltip && topChart.tooltip._active && topChart.tooltip._active.length) {
-        activeX = topChart.tooltip._active[0].element.x;
+        activeIdx = topChart.tooltip._active[0].index;
     } else if (btmChart && btmChart.tooltip && btmChart.tooltip._active && btmChart.tooltip._active.length) {
-        activeX = btmChart.tooltip._active[0].element.x;
+        activeIdx = btmChart.tooltip._active[0].index;
     }
 
-    // DRAW THE PERFECTLY STRAIGHT LASER SIGHT
-    if (activeX !== null) {
+    if (activeIdx !== null && meta.data[activeIdx]) {
+       let activeX = meta.data[activeIdx].x;
        ctx.save();
        ctx.beginPath();
        ctx.setLineDash([3, 3]);
-       ctx.moveTo(activeX, chartInstance.chartArea.top);
-       ctx.lineTo(activeX, chartInstance.chartArea.bottom);
+       ctx.moveTo(activeX, chartInstance.scales.y.top);
+       ctx.lineTo(activeX, chartInstance.scales.y.bottom);
        ctx.lineWidth = 1;
        ctx.strokeStyle = '#94a3b8';
        ctx.stroke();
@@ -459,8 +457,8 @@ const universalAnnotationsPlugin = {
             if(swingLows.length === 2) break;
           }
         }
-        const startX_edge = chartInstance.chartArea.left; 
-        const endX_edge = chartInstance.chartArea.right; 
+        const startX_edge = meta.data[0].x; 
+        const endX_edge = meta.data[data.length - 1].x; 
 
         if(swingLows.length > 0) {
           ctx.lineWidth = 1; ctx.setLineDash([3, 3]); ctx.font = '9px "Space Mono"';
@@ -677,31 +675,25 @@ function updateLiveChart(days, btnElement) {
         plugins: { 
             legend: { display: false },
             tooltip: { 
-                caretPadding: 15, 
                 callbacks: { afterBody: function(items) { if(!items.length) return ''; let idx = items[0].dataIndex; return ['----------------', `Regime : ${wmaRegimes[idx]}`, `D-RSI  : ${Math.round(drsiData[idx])}`, `W-RSI  : ${Math.round(wrsiData[idx])}`]; } } 
             },
             zoom: { zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }, pan: { enabled: true, mode: 'x' } }
         }, 
-        // ALIGNMENT FIX: Strictly lock the padding on both charts
-        layout: { padding: { top: 15, bottom: 5, left: 20, right: 5 } }, 
-        scales: { 
-            x: { display: false, offset: true }, 
-            // ALIGNMENT FIX: Add a ghost Y-Axis so both charts have exact same layout width
-            y: { position: 'right', display: true, grid: { display: false }, border: { display: false }, ticks: { display: false }, afterFit: function(scale) { scale.width = 45; } } 
-        } 
+        layout: { padding: { top: 15, bottom: 5, left: 5, right: 5 } }, 
+        scales: { x: { display: false }, y: { grid: { color: '#1e293b' } } } 
     }
   });
 
   if(liveDeltaChart) liveDeltaChart.destroy();
   liveDeltaChart = new Chart(document.getElementById('liveDeltaCanvas').getContext('2d'), {
       type: 'bar',
-      plugins: [universalAnnotationsPlugin],
+      plugins: [universalAnnotationsPlugin], 
       data: { 
         labels: dataSlice.map(d => d.date), 
         datasets: [
           { type: 'bar', data: deltaData, backgroundColor: deltaColors, barPercentage: 1.0, categoryPercentage: 1.0 },
-          { type: 'line', label: 'Sell Zone', data: Array(dataSlice.length).fill(profitDeltaLevel), borderColor: '#ef4444', borderDash: [2,2], pointRadius: 0, borderWidth: 1 },
-          { type: 'line', label: 'Buy Zone', data: Array(dataSlice.length).fill(buyDeltaLevel), borderColor: '#10b981', borderDash: [2,2], pointRadius: 0, borderWidth: 1 }
+          { type: 'line', label: 'Sell Zone', data: Array(dataSlice.length).fill(15), borderColor: '#ef4444', borderDash: [2,2], pointRadius: 0, borderWidth: 1 },
+          { type: 'line', label: 'Buy Zone', data: Array(dataSlice.length).fill(-15), borderColor: '#10b981', borderDash: [2,2], pointRadius: 0, borderWidth: 1 }
         ] 
       },
       options: {
@@ -710,17 +702,14 @@ function updateLiveChart(days, btnElement) {
           onHover: (e) => syncCharts(liveDeltaChart, liveChart, e), 
           plugins: { 
               legend: { display: false },
-              tooltip: { caretPadding: 15 }
+              tooltip: { caretPadding: 20 }
           },
-          // ALIGNMENT FIX: Locked to match the top chart exactly
-          layout: { padding: { top: 5, bottom: 5, left: 20, right: 5 } }, 
           scales: {
-              x: { display: true, offset: true, grid: { display: false }, ticks: { align: 'inner', maxRotation: 0, maxTicksLimit: 6, color: '#94a3b8', font: { size: 9, family: '"Space Mono"' } } },
-              y: { position: 'right', display: true, grid: { color: 'rgba(30, 41, 59, 0.5)' }, border: { dash: [2,4] }, min: -35, max: 35, ticks: { display: true, color: '#94a3b8', font: { size: 8, family: '"Space Mono"' }, maxTicksLimit: 5 }, afterFit: function(scale) { scale.width = 45; } }
+              x: { display: true, grid: { display: false }, ticks: { maxTicksLimit: 6, color: '#94a3b8', font: { size: 9, family: '"Space Mono"' } } },
+              y: { grid: { color: 'rgba(30, 41, 59, 0.5)' }, border: { dash: [2,4] }, min: -35, max: 35, ticks: { display: false } }
           }
       }
   });
-  setTimeout(() => { if(liveChart) liveChart.resize(); if(liveDeltaChart) liveDeltaChart.resize(); }, 50);
 }
 
 function resetLiveZoom() { if(liveChart) liveChart.resetZoom(); }
@@ -896,7 +885,7 @@ function updateDisplay() {
           else if (prevWma !== null && prevNav !== null && prevNav < prevWma && currentNav > currentWma) { alertText = "🟢 BUY SIGNAL: WMA RECLAIM"; alertClass = "alert-buy"; }
       }
       
-      if (!alertText && delta > profitDeltaLevel) { alertText = `🟠 TAKE PROFIT: OVERHEATED (Delta > ${profitDeltaLevel})`; alertClass = "alert-profit"; }
+      if (!alertText && delta > profitDeltaLevel) { alertText = `🟠 TAKE PROFIT (DELTA > ${profitDeltaLevel})`; alertClass = "alert-profit"; }
   }
 
   if (alertText) { banner.textContent = alertText; banner.className = alertClass; banner.style.display = 'block'; }
@@ -963,15 +952,11 @@ function updateDisplay() {
         plugins: { 
             legend: { display: false },
             tooltip: { 
-                caretPadding: 15,
                 callbacks: { afterBody: function(items) { if(!items.length) return ''; let idx = items[0].dataIndex; return ['----------------', `Regime : ${wmaRegimes[idx]}`, `D-RSI  : ${Math.round(drsiData[idx])}`, `W-RSI  : ${Math.round(wrsiData[idx])}`]; } }
             }
         }, 
-        layout: { padding: { top: 15, bottom: 5, left: 20, right: 5 } }, 
-        scales: { 
-            x: { display: false, offset: true }, 
-            y: { position: 'right', display: true, grid: { display: false }, border: { display: false }, ticks: { display: false }, afterFit: function(scale) { scale.width = 45; } } 
-        } 
+        layout: { padding: { top: 15, bottom: 5, left: 5, right: 5 } }, 
+        scales: { x: { display: false }, y: { grid: { color: '#1e293b' }, ticks: { display: false } } } 
     }
   });
 
@@ -994,13 +979,10 @@ function updateDisplay() {
           onHover: (e) => syncCharts(deltaChart, chart, e),
           plugins: { 
               legend: { display: false },
-              tooltip: { caretPadding: 15 }
+              tooltip: { caretPadding: 20 }
           }, 
-          layout: { padding: { top: 5, bottom: 5, left: 20, right: 5 } }, 
-          scales: { 
-              x: { display: false, offset: true }, 
-              y: { position: 'right', display: true, grid: { color: 'rgba(30, 41, 59, 0.5)' }, border: { dash: [2,4] }, min: -35, max: 35, ticks: { display: true, color: '#94a3b8', font: { size: 8, family: '"Space Mono"' }, maxTicksLimit: 5 }, afterFit: function(scale) { scale.width = 45; } } 
-          } 
+          layout: { padding: { top: 5, bottom: 5, left: 5, right: 5 } }, 
+          scales: { x: { display: false, offset: true }, y: { grid: { color: 'rgba(30, 41, 59, 0.5)' }, border: { dash: [2,4] }, min: -35, max: 35, ticks: { display: false } } } 
       }
   });
   setTimeout(() => { if(chart) chart.resize(); if(deltaChart) deltaChart.resize(); }, 50);
