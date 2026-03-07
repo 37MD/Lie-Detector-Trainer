@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MF Lie Detector - Pro Mastery v6.13</title>
+<title>MF Lie Detector - Pro Mastery v6.14</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
@@ -80,6 +80,12 @@
   .fund-box { background: var(--surface2); border: 2px solid var(--border); color: var(--text); padding: 12px 2px; border-radius: 6px; font-family: var(--sans); font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
   .fund-box.active { border-color: var(--accent); background: rgba(16, 185, 129, 0.1); color: var(--accent); }
   .dropdown { background: var(--surface2); border: 1px solid var(--border); color: white; padding: 12px; width: 100%; max-width: 350px; margin-bottom: 1rem; border-radius: 6px; font-family: var(--sans); font-size: 0.85rem; }
+  
+  .custom-inputs { display: flex; gap: 10px; width: 100%; max-width: 350px; margin-bottom: 1rem; }
+  .c-input-box { flex: 1; background: var(--surface2); padding: 6px; border-radius: 6px; border: 1px solid var(--border); }
+  .c-label { font-size: 0.65rem; color: var(--muted); font-family: var(--mono); display: block; margin-bottom: 2px; }
+  .c-num { width: 100%; background: transparent; border: none; font-weight: bold; font-size: 1rem; font-family: var(--mono); outline: none; text-align: center; }
+
   .toggle-container { margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; font-size: 0.75rem; color: var(--muted); background: var(--surface2); padding: 8px; border-radius: 6px; border: 1px solid var(--border); }
   .toggle-check { accent-color: var(--accent); transform: scale(1.2); cursor: pointer; }
   .reset-zoom { font-size: 0.6rem; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 2px 6px; border-radius: 4px; cursor: pointer; }
@@ -115,11 +121,6 @@
   #ov { display: none; position: fixed; inset: 0; background: rgba(8,11,18,0.95); z-index: 1000; align-items: center; justify-content: center; flex-direction: column; }
   .spin { width: 35px; height: 35px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-
-  .custom-inputs { display: flex; gap: 10px; width: 100%; max-width: 350px; margin-bottom: 1rem; }
-  .c-input-box { flex: 1; background: var(--surface2); padding: 6px; border-radius: 6px; border: 1px solid var(--border); }
-  .c-label { font-size: 0.65rem; color: var(--muted); font-family: var(--mono); display: block; margin-bottom: 2px; }
-  .c-num { width: 100%; background: transparent; border: none; font-weight: bold; font-size: 1rem; font-family: var(--mono); outline: none; text-align: center; }
 </style>
 </head>
 <body>
@@ -127,8 +128,8 @@
 <div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.7rem; margin-top: 10px;" id="ovTxt">SYNCING...</div></div>
 
 <div id="setupScreen">
-  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v6.13</h1>
-  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Absolute Sandbox Stabilization</p>
+  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v6.14</h1>
+  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Perfect Alignment & Smart Tooltips</p>
   
   <div class="fund-grid" id="fundGrid">
     <div class="fund-box" onclick="selectAMC('HDFC', this)">HDFC</div>
@@ -250,7 +251,7 @@
 
 <div id="gameUI" style="display: none; height: 100vh; flex-direction: column;">
   <header class="app-header">
-    <div class="logo">LIE DETECTOR V6.13</div>
+    <div class="logo">LIE DETECTOR V6.14</div>
     <div style="display: flex; gap: 8px; align-items: center;">
       <button class="btn-log" onclick="showLog()">LOG</button>
       <button class="btn-review" onclick="endAndReview()">END & REVIEW</button>
@@ -676,12 +677,13 @@ function updateLiveChart(days, btnElement) {
             legend: { display: false },
             tooltip: { 
                 caretPadding: 20, 
+                yAlign: 'bottom', // Pushes tooltip up
                 callbacks: { afterBody: function(items) { if(!items.length) return ''; let idx = items[0].dataIndex; return ['----------------', `Regime : ${wmaRegimes[idx]}`, `D-RSI  : ${Math.round(drsiData[idx])}`, `W-RSI  : ${Math.round(wrsiData[idx])}`]; } } 
             },
             zoom: { zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }, pan: { enabled: true, mode: 'x' } }
         }, 
         layout: { padding: { top: 15, bottom: 5, left: 5, right: 5 } }, 
-        scales: { x: { display: false, offset: true }, y: { grid: { color: '#1e293b' } } } 
+        scales: { x: { display: false, offset: true }, y: { grid: { color: '#1e293b' } } } // ADDED OFFSET: TRUE
     }
   });
 
@@ -703,15 +705,14 @@ function updateLiveChart(days, btnElement) {
           onHover: (e) => syncCharts(liveDeltaChart, liveChart, e), 
           plugins: { 
               legend: { display: false },
-              tooltip: { caretPadding: 20 }
+              tooltip: { caretPadding: 20, yAlign: 'bottom' } // PUSHES TOOLTIP UP
           },
           scales: {
               x: { display: true, offset: true, grid: { display: false }, ticks: { maxTicksLimit: 6, color: '#94a3b8', font: { size: 9, family: '"Space Mono"' } } },
-              y: { position: 'right', grid: { color: 'rgba(30, 41, 59, 0.5)' }, border: { dash: [2,4] }, min: -35, max: 35, ticks: { display: true, color: '#94a3b8', font: { size: 8, family: '"Space Mono"' }, maxTicksLimit: 5 } }
+              y: { grid: { color: 'rgba(30, 41, 59, 0.5)' }, border: { dash: [2,4] }, min: -35, max: 35, ticks: { display: false } }
           }
       }
   });
-  setTimeout(() => { if(liveChart) liveChart.resize(); if(liveDeltaChart) liveDeltaChart.resize(); }, 50);
 }
 
 function resetLiveZoom() { if(liveChart) liveChart.resetZoom(); }
@@ -773,8 +774,6 @@ async function initGame(mode) {
   document.getElementById('setupScreen').style.display = 'none';
   document.getElementById('gameUI').style.display = 'flex';
   updateDisplay();
-  
-  setTimeout(() => { if(chart) chart.resize(); if(deltaChart) deltaChart.resize(); }, 50);
 }
 
 function updateDisplay() {
@@ -949,7 +948,6 @@ function updateDisplay() {
       ] 
     },
     options: { 
-        animation: false,
         responsive: true, maintainAspectRatio: false, 
         interaction: { mode: 'index', intersect: false },
         onHover: (e) => syncCharts(chart, deltaChart, e),
@@ -957,11 +955,12 @@ function updateDisplay() {
             legend: { display: false },
             tooltip: { 
                 caretPadding: 20,
+                yAlign: 'bottom', // PUSHES TOOLTIP UP
                 callbacks: { afterBody: function(items) { if(!items.length) return ''; let idx = items[0].dataIndex; return ['----------------', `Regime : ${wmaRegimes[idx]}`, `D-RSI  : ${Math.round(drsiData[idx])}`, `W-RSI  : ${Math.round(wrsiData[idx])}`]; } }
             }
         }, 
         layout: { padding: { top: 15, bottom: 5, left: 5, right: 5 } }, 
-        scales: { x: { display: false, offset: true }, y: { grid: { color: '#1e293b' }, ticks: { display: false } } } 
+        scales: { x: { display: false, offset: true }, y: { grid: { color: '#1e293b' }, ticks: { display: false } } } // ADDED OFFSET: TRUE
     }
   });
 
@@ -978,17 +977,16 @@ function updateDisplay() {
         ]
       },
       options: { 
-          animation: false,
           responsive: true, maintainAspectRatio: false, 
           interaction: { mode: 'index', intersect: false },
           onHover: (e) => syncCharts(deltaChart, chart, e),
           plugins: { 
               legend: { display: false },
-              tooltip: { caretPadding: 20 }
+              tooltip: { caretPadding: 20, yAlign: 'bottom' } // PUSHES TOOLTIP UP
           }, 
           scales: { 
               x: { display: false, offset: true }, 
-              y: { position: 'right', grid: { color: 'rgba(30, 41, 59, 0.5)' }, border: { dash: [2,4] }, min: -35, max: 35, ticks: { display: true, color: '#94a3b8', font: { size: 8, family: '"Space Mono"' }, maxTicksLimit: 5 } } 
+              y: { grid: { color: 'rgba(30, 41, 59, 0.5)' }, border: { dash: [2,4] }, min: -35, max: 35, ticks: { display: false } } 
           } 
       }
   });
