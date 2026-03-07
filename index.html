@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MF Lie Detector - Pro Mastery v6.18</title>
+<title>MF Lie Detector - Pro Mastery v6.19</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
@@ -128,8 +128,8 @@
 <div id="ov"><div class="spin"></div><div style="font-family: var(--mono); color: var(--accent); font-size: 0.7rem; margin-top: 10px;" id="ovTxt">SYNCING...</div></div>
 
 <div id="setupScreen">
-  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v6.18</h1>
-  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Tooltip Clearance Patch</p>
+  <h1 style="margin-bottom: 0.5rem; font-size: 1.6rem;">Mastery Sim v6.19</h1>
+  <p style="color:var(--muted); font-size: 0.75rem; margin-bottom: 1rem;">Scope Fix & Clean Tooltips</p>
   
   <div class="fund-grid" id="fundGrid">
     <div class="fund-box" onclick="selectAMC('HDFC', this)">HDFC</div>
@@ -251,7 +251,7 @@
 
 <div id="gameUI" style="display: none; height: 100vh; flex-direction: column;">
   <header class="app-header">
-    <div class="logo">LIE DETECTOR V6.18</div>
+    <div class="logo">LIE DETECTOR V6.19</div>
     <div style="display: flex; gap: 8px; align-items: center;">
       <button class="btn-log" onclick="showLog()">LOG</button>
       <button class="btn-review" onclick="endAndReview()">END & REVIEW</button>
@@ -422,8 +422,9 @@ const universalAnnotationsPlugin = {
     if(!meta.data || meta.data.length === 0) return;
 
     let isLive = chartInstance.canvas.id.includes('live');
-    let topChart = isLive ? (typeof liveChart !== 'undefined' ? liveChart : null) : (typeof window.chart !== 'undefined' ? window.chart : null);
-    let btmChart = isLive ? (typeof liveDeltaChart !== 'undefined' ? liveDeltaChart : null) : (typeof window.deltaChart !== 'undefined' ? window.deltaChart : null);
+    // FIX: Removing 'window.' so it can successfully find the local block-scoped simulator charts
+    let topChart = isLive ? liveChart : (typeof chart !== 'undefined' ? chart : null);
+    let btmChart = isLive ? liveDeltaChart : (typeof deltaChart !== 'undefined' ? deltaChart : null);
 
     let activeIdx = null;
     if (topChart && topChart.tooltip && topChart.tooltip._active && topChart.tooltip._active.length) {
@@ -676,14 +677,18 @@ function updateLiveChart(days, btnElement) {
         plugins: { 
             legend: { display: false },
             tooltip: { 
-                caretPadding: 25, 
+                // FIX: Increased to 30px so it repels far away from your finger and the cursor line
+                caretPadding: 30, 
                 yAlign: 'bottom',
                 callbacks: { afterBody: function(items) { if(!items.length) return ''; let idx = items[0].dataIndex; return ['----------------', `Regime : ${wmaRegimes[idx]}`, `D-RSI  : ${Math.round(drsiData[idx])}`, `W-RSI  : ${Math.round(wrsiData[idx])}`]; } } 
             },
             zoom: { zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }, pan: { enabled: true, mode: 'x' } }
         }, 
         layout: { padding: { top: 15, bottom: 5, left: 5, right: 5 } }, 
-        scales: { x: { display: false, offset: true }, y: { display: false } } 
+        scales: { 
+            x: { display: false, offset: true }, 
+            y: { position: 'right', display: true, grid: { display: false }, border: { display: false }, ticks: { display: false }, afterFit: function(scale) { scale.width = 40; } } 
+        } 
     }
   });
 
@@ -705,12 +710,16 @@ function updateLiveChart(days, btnElement) {
           onHover: (e) => syncCharts(liveDeltaChart, liveChart, e), 
           plugins: { 
               legend: { display: false },
-              tooltip: { caretPadding: 25, yAlign: 'bottom' }
+              tooltip: { caretPadding: 30, yAlign: 'bottom' } // FIX: Repels tooltip
           },
           layout: { padding: { top: 5, bottom: 5, left: 5, right: 5 } }, 
           scales: {
               x: { display: true, offset: true, grid: { display: false }, ticks: { align: 'inner', maxRotation: 0, maxTicksLimit: 6, color: '#94a3b8', font: { size: 9, family: '"Space Mono"' } } },
-              y: { display: false }
+              y: { 
+                  position: 'right', display: true, grid: { color: 'rgba(30, 41, 59, 0.5)' }, border: { dash: [2,4] }, min: -35, max: 35, 
+                  ticks: { display: true, color: '#94a3b8', font: { size: 8, family: '"Space Mono"' }, maxTicksLimit: 5 },
+                  afterFit: function(scale) { scale.width = 40; } 
+              }
           }
       }
   });
@@ -956,7 +965,7 @@ function updateDisplay() {
         plugins: { 
             legend: { display: false },
             tooltip: { 
-                caretPadding: 25,
+                caretPadding: 30, // FIX: Repels tooltip far away from cursor
                 yAlign: 'bottom',
                 callbacks: { afterBody: function(items) { if(!items.length) return ''; let idx = items[0].dataIndex; return ['----------------', `Regime : ${wmaRegimes[idx]}`, `D-RSI  : ${Math.round(drsiData[idx])}`, `W-RSI  : ${Math.round(wrsiData[idx])}`]; } }
             }
@@ -964,7 +973,7 @@ function updateDisplay() {
         layout: { padding: { top: 15, bottom: 5, left: 5, right: 5 } }, 
         scales: { 
             x: { display: false, offset: true }, 
-            y: { display: false } 
+            y: { position: 'right', display: true, grid: { display: false }, border: { display: false }, ticks: { display: false }, afterFit: function(scale) { scale.width = 40; } } 
         } 
     }
   });
@@ -988,12 +997,16 @@ function updateDisplay() {
           onHover: (e) => syncCharts(deltaChart, chart, e),
           plugins: { 
               legend: { display: false },
-              tooltip: { caretPadding: 25, yAlign: 'bottom' }
+              tooltip: { caretPadding: 30, yAlign: 'bottom' } // FIX: Repels tooltip
           }, 
           layout: { padding: { top: 5, bottom: 5, left: 5, right: 5 } }, 
           scales: { 
               x: { display: false, offset: true }, 
-              y: { display: false } 
+              y: { 
+                  position: 'right', display: true, grid: { color: 'rgba(30, 41, 59, 0.5)' }, border: { dash: [2,4] }, min: -35, max: 35, 
+                  ticks: { display: true, color: '#94a3b8', font: { size: 8, family: '"Space Mono"' }, maxTicksLimit: 5 },
+                  afterFit: function(scale) { scale.width = 40; } 
+              } 
           } 
       }
   });
